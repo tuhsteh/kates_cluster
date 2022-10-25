@@ -20,4 +20,11 @@
  - VSCode or your favorite editor
 
 
- 
+ ## Goals:
+  - K3s
+  - Grafana
+  - Prometheus
+  - Jenkins
+  - Syslog-ng
+  - Elasticsearch
+  
