@@ -1,5 +1,5 @@
 
-# K8S Cluster
+# K8s Cluster
 
 ## Hardware:
 
