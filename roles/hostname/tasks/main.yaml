@@ -1,4 +1,7 @@
 
 - name: Echo Hostname
-  shell:  echo ${HOSTNAME}
+  command:  "cat /etc/hosts"
+  register:  hostname
+
+- debug:  msg="{{ hostname.stdout }}"
 

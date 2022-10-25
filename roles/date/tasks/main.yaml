@@ -1,4 +1,7 @@
 
 - name: date
   shell:  date
+  register: datetime
+
+- debug:  msg="{{ datetime.stdout }}"
 
