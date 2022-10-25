@@ -1,0 +1,4 @@
+
+- name: Echo Hostname
+  shell:  echo ${HOSTNAME}
+

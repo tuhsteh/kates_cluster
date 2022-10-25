@@ -1,0 +1,6 @@
+
+- hosts:  stage
+  become:  true
+  roles:
+    - date
+    - hostname
