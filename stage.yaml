@@ -2,18 +2,18 @@
 - hosts:  stage_leader
   become:  true
   roles:
+    - swapoff
     - date
     - cgroup 
     - mem_count
-    - swapoff
     - apt-get
     - k3s-leader
 
 - hosts: stage_members
   become:  true
   roles:
+    - swapoff
     - date
     - cgroup
     - mem_count
-    - swapoff
     - apt-get
