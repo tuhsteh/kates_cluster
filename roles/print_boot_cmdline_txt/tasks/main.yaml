@@ -1,0 +1,8 @@
+
+- name: print /boot/cmdline.txt
+  shell:  "cat /boot/cmdline.txt"
+  become:  true
+  register: cmdline
+
+- debug:  msg="{{ cmdline.stdout_lines }}"
+

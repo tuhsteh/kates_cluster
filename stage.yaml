@@ -4,16 +4,18 @@
   roles:
     - swapoff
     - date
-    - cgroup 
     - mem_count
-    - apt-get
-    - k3s-leader
+    - print_boot_cmdline_txt
+    - cgroup 
+    # - apt-get
+    # - k3s-leader
 
 - hosts: stage_members
   become:  true
   roles:
     - swapoff
     - date
-    - cgroup
     - mem_count
-    - apt-get
+    - print_boot_cmdline_txt
+    - cgroup
+    # - apt-get

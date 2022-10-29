@@ -1,7 +1,4 @@
 
 - name: swapoff
   shell:  swapoff -a
-  register: swapoff
-
-- debug:  msg="{{ swapoff.stdout_lines }}"
 
