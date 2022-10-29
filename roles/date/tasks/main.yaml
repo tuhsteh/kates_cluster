@@ -3,5 +3,5 @@
   shell:  date
   register: datetime
 
-- debug:  msg="{{ datetime.stdout }}"
+- debug:  msg="{{ datetime.stdout_lines }}"
 

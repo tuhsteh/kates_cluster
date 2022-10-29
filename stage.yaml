@@ -3,4 +3,6 @@
   become:  true
   roles:
     - date
+    - mem_count
+    - swapoff
     - apt-get
