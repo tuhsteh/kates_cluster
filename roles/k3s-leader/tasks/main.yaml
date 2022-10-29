@@ -1,0 +1,6 @@
+
+- name: k3s_leader
+  shell:  curl -sfL https://get.k3s.io | sh -
+  register: leader_install
+
+- debug: msg="{{ leader_install.stdout_lines }}"

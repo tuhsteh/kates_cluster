@@ -1,13 +1,9 @@
 
 
-[stage]
+[stage_leader]
 kate0.local
-kate1.local
-kate2.local
-kate3.local
-kate4.local
-kate5.local
-kate6.local
-kate7.local
+
+[stage_members]
+kate[1:7].local
 
 
