@@ -7,8 +7,8 @@
     - mem_count
     - print_boot_cmdline_txt
     - cgroup 
-    # - apt-get
-    # - k3s-leader
+    - apt-get
+    - k3s-leader
 
 - hosts: stage_members
   become:  true
@@ -18,4 +18,4 @@
     - mem_count
     - print_boot_cmdline_txt
     - cgroup
-    # - apt-get
+    - apt-get

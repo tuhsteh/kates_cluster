@@ -1,0 +1,5 @@
+
+ - name: Disable wifi
+   shell:  ifconfig wlan0 down
+
+   
