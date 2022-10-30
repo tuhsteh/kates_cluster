@@ -21,10 +21,11 @@
 
 
  ## Goals:
-  - K3s
+  - K3s (inspiration and help from https://github.com/k3s-io/k3s-ansible)
   - Grafana
   - Prometheus
-  - Jenkins
+  - Jenkins (https://jenkins-x.io/v3/admin/platforms/k3s/)
   - Syslog-ng
   - Elasticsearch
+
   
