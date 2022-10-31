@@ -1,0 +1,7 @@
+
+- name: setup bashrc
+  copy:
+    src: bashrc.txt
+    dest:  /home/pi/.bashrc
+    owner: pi
+

@@ -2,6 +2,7 @@
 - hosts:  stage_leader
   become:  true
   roles:
+    - bashrc
     - swapoff
     - date
     - mem_count
@@ -9,10 +10,14 @@
     - cgroup 
     - apt-get
     - k3s-leader
+    - docker-registry
+
+
 
 - hosts: stage_members
   become:  true
   roles:
+    - bashrc
     - swapoff
     - date
     - mem_count

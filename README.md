@@ -22,6 +22,7 @@
 
  ## Goals:
   - K3s (inspiration and help from https://github.com/k3s-io/k3s-ansible)
+  - Docker registry on the cluster (https://carpie.net/articles/installing-docker-registry-on-k3s)
   - Grafana
   - Prometheus
   - Jenkins (https://jenkins-x.io/v3/admin/platforms/k3s/)
