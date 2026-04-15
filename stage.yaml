@@ -8,6 +8,7 @@
     - mem_count
     - print_boot_cmdline_txt
     - cgroup 
+    - log_ramdisk
     - apt-get
     - k3s-leader
     - docker-registry
@@ -23,4 +24,5 @@
     - mem_count
     - print_boot_cmdline_txt
     - cgroup
+    - log_ramdisk
     - apt-get
