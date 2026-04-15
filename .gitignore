@@ -38,3 +38,7 @@ Temporary Items
 *.icloud
 
 # End of https://www.toptal.com/developers/gitignore/api/ansible,macos
+
+# i DO want to include .context, since there will be important
+# discovery information in there.
+!.context/
