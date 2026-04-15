@@ -1,4 +1,30 @@
 ---
+- name: Create k3s data directory on SSD
+  ansible.builtin.file:
+    path: /mnt/ssd/k3s
+    state: directory
+    mode: "0700"
+    owner: root
+    group: root
+
+- name: Ensure k3s systemd drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/k3s.service.d
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Add SSD mount dependency to k3s service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/k3s.service.d/override.conf
+    content: |
+      [Unit]
+      After=mnt-ssd.mount
+      Requires=mnt-ssd.mount
+    mode: "0644"
+  notify: Reload systemd
+
 - name: ensure k3s config directory exists
   ansible.builtin.file:
     path: /etc/rancher/k3s
