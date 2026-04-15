@@ -1,0 +1,7 @@
+# Managed by Ansible — do not edit manually
+# k3s agent configuration for {{ inventory_hostname }}
+
+# --- kubelet arguments ---
+kubelet-arg:
+  - "container-log-max-size=10Mi"
+  - "container-log-max-files=3"

@@ -18,7 +18,6 @@
     - apt-get
     - k3s-leader
     - docker-registry
-    - k3s-log-rotation
 
 
 
@@ -40,4 +39,4 @@
     - fake-hwclock
     - boot-opts
     - apt-get
-    - k3s-log-rotation
+    - k3s-member
