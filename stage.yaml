@@ -16,6 +16,7 @@
     - fake-hwclock
     - boot-opts
     - apt-get
+    - ssd-mount
     - k3s-leader
     - docker-registry
 
@@ -39,4 +40,5 @@
     - fake-hwclock
     - boot-opts
     - apt-get
+    - ssd-mount
     - k3s-member
