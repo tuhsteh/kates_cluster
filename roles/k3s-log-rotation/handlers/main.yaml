@@ -1,5 +1,0 @@
-- name: restart k3s
-  service:
-    name: "{{ 'k3s' if inventory_hostname in groups['stage_leader'] else 'k3s-agent' }}"
-    state: restarted
-  ignore_errors: yes
