@@ -3,7 +3,7 @@
 
 # --- Storage ---
 # Store all k3s data on the m.2 SSD to protect the SD card from write wear
-data-dir: /mnt/ssd/k3s
+data-dir: "{{ k3s_data_dir }}"
 
 # --- kubelet arguments ---
 # WARNING: root-dir moves emptyDir volumes and pod sandbox storage to SSD.
@@ -11,4 +11,4 @@ data-dir: /mnt/ssd/k3s
 kubelet-arg:
   - "container-log-max-size=10Mi"
   - "container-log-max-files=3"
-  - "root-dir=/mnt/ssd/k3s/agent/kubelet"
+  - "root-dir={{ k3s_data_dir }}/agent/kubelet"
