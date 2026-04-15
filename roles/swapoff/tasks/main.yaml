@@ -1,6 +1,7 @@
 
 - name: swapoff
-  shell:  swapoff -a
+  command: swapoff -a
+  changed_when: false
 
 - name: purge dphys-swapfile package
   apt:

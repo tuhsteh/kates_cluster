@@ -1,4 +1,5 @@
+---
 - name: reboot
   reboot:
-    msg: "Rebooting for boot option changes"
+    msg: "Rebooting for kernel/boot changes"
     reboot_timeout: 300

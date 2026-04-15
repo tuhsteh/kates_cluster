@@ -1,4 +1,0 @@
-- name: reboot
-  reboot:
-    msg: "Rebooting for fstab changes"
-    reboot_timeout: 300

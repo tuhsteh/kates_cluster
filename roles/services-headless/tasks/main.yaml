@@ -2,19 +2,16 @@
   systemd:
     name: triggerhappy.service
     masked: yes
-    state: stopped
   ignore_errors: yes
 
 - name: mask bluetooth service
   systemd:
     name: bluetooth.service
     masked: yes
-    state: stopped
   ignore_errors: yes
 
 - name: mask hciuart service
   systemd:
     name: hciuart.service
     masked: yes
-    state: stopped
   ignore_errors: yes

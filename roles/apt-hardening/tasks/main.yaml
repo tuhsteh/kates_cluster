@@ -2,14 +2,12 @@
   systemd:
     name: apt-daily.timer
     masked: yes
-    state: stopped
   ignore_errors: yes
 
 - name: mask apt-daily-upgrade timer
   systemd:
     name: apt-daily-upgrade.timer
     masked: yes
-    state: stopped
   ignore_errors: yes
 
 - name: remove unattended-upgrades
