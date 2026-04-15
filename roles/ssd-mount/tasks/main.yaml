@@ -1,4 +1,5 @@
 ---
+# Defensive re-gather ensures ansible_devices is populated even if the calling play has gather_facts disabled.
 - name: Gather block device facts
   ansible.builtin.setup:
     gather_subset:
@@ -6,7 +7,7 @@
 
 - name: Set ssd_device fact from NVMe device
   ansible.builtin.set_fact:
-    ssd_device: "{{ (ansible_devices.keys() | select('match', '^nvme[0-9]+n[0-9]+$') | list | sort)[0] | default('') }}"
+    ssd_device: "{{ ansible_devices.keys() | select('match', '^nvme[0-9]+n[0-9]+$') | list | sort | first | default('') }}"
 
 - name: Set ssd_device fact from SATA device (fallback when no NVMe found)
   ansible.builtin.set_fact:
@@ -42,17 +43,24 @@
   ansible.builtin.command: "blkid -s UUID -o value /dev/{{ ssd_device }}"
   register: ssd_uuid_result
   changed_when: false
+  when: not ansible_check_mode
 
 - name: Set ssd_uuid fact
   ansible.builtin.set_fact:
     ssd_uuid: "{{ ssd_uuid_result.stdout | trim }}"
+  when: not ansible_check_mode
+
+- name: Set ssd_uuid fact (check mode placeholder)
+  ansible.builtin.set_fact:
+    ssd_uuid: "CHECK-MODE-PLACEHOLDER"
+  when: ansible_check_mode
 
 - name: Fail if UUID could not be read from SSD
   ansible.builtin.fail:
     msg: >
       Could not read UUID from /dev/{{ ssd_device }} on {{ inventory_hostname }}.
       blkid returned empty output — filesystem may not have been created correctly.
-  when: ssd_uuid == ''
+  when: not ansible_check_mode and ssd_uuid == ''
 
 - name: Create /mnt/ssd mount point directory
   ansible.builtin.file:
