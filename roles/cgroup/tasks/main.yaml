@@ -1,16 +1,24 @@
+- name: detect boot firmware path
+  stat:
+    path: /boot/firmware/cmdline.txt
+  register: boot_firmware
+
+- name: set cmdline_path fact
+  set_fact:
+    cmdline_path: "{{ '/boot/firmware/cmdline.txt' if boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
 
 - name: Activating cgroup support
   lineinfile:
-    path: /boot/cmdline.txt
+    path: "{{ cmdline_path }}"
     backrefs: yes
-    regexp: '^(console=serial0.+rootwait)$'
+    regexp: '^((?!.*cgroup_enable=memory).+rootwait.*)$'
     line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
   notify: reboot
 
 - name: Flush iptables before changing to iptables-legacy
   iptables:
     flush: true
-  changed_when: false   # iptables flush always returns changed
+  changed_when: false
 
 - name: Changing to iptables-legacy
   alternatives:
