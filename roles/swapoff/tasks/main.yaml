@@ -2,3 +2,14 @@
 - name: swapoff
   shell:  swapoff -a
 
+- name: purge dphys-swapfile package
+  apt:
+    name: dphys-swapfile
+    state: absent
+    purge: yes
+
+- name: remove /var/swap file
+  file:
+    path: /var/swap
+    state: absent
+

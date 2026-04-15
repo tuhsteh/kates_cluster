@@ -1,0 +1,13 @@
+- name: check if dhcpcd is installed
+  stat:
+    path: /sbin/dhcpcd
+  register: dhcpcd_bin
+
+- name: mount /var/lib/dhcp as tmpfs
+  mount:
+    path: /var/lib/dhcp
+    src: tmpfs
+    fstype: tmpfs
+    opts: rw,noatime,nosuid,nodev,mode=0755,size=16m
+    state: mounted
+  when: dhcpcd_bin.stat.exists

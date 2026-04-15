@@ -1,0 +1,8 @@
+- name: deploy sysctl SD card wear reduction config
+  copy:
+    src: 99-sdcard.conf
+    dest: /etc/sysctl.d/99-sdcard.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: apply sysctl
