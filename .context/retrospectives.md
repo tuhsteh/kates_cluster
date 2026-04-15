@@ -1,5 +1,5 @@
 ### log-ramdisk: Mount /var/log as tmpfs ramdisk
-- **Avoid**: Each `bash` tool call runs in a fresh shell — `git checkout -b feature/log-ramdisk` did not persist to a later commit call, so the commit landed on `master`. Fix: always include `git checkout <branch>` in the same bash call as the git operation (e.g., `git checkout feature/log-ramdisk && git commit ...`), or verify branch with `git branch` immediately before committing.
+- **Avoid**: Each `bash` tool call runs in a fresh shell — `git checkout -b feature/log-ramdisk` did not persist to a later commit call, so the commit landed on `main`. Fix: always include `git checkout <branch>` in the same bash call as the git operation (e.g., `git checkout feature/log-ramdisk && git commit ...`), or verify branch with `git branch` immediately before committing.
 - **Repeat**: @reviewer caught a silent correctness risk (journald switching to persistent mode on the tmpfs, filling the ramdisk unexpectedly) that wasn't obvious from the implementation alone. Worth the review pass even on small new roles.
 - **Updated**: nothing to promote — no committed `.context/` in this project (globally gitignored). If `initialize-repo` is run in future, promote the journald/tmpfs pattern to `domains/raspberry-pi.md`.
 
