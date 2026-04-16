@@ -93,3 +93,12 @@
     name: k3s-agent
     state: started
     enabled: true
+
+- name: Write registries.yaml on member node
+  ansible.builtin.template:
+    src: registries.yaml.j2
+    dest: /etc/rancher/k3s/registries.yaml
+    owner: root
+    group: root
+    mode: '0600'
+  notify: Restart k3s-agent
