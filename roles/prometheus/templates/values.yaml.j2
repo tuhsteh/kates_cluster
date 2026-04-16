@@ -1,0 +1,132 @@
+# Managed by Ansible — do not edit manually
+# kube-prometheus-stack Helm values for k3s on ARM64 Raspberry Pi 4B
+
+# --- Prometheus Operator ---
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# --- Disable k3s-incompatible component monitors ---
+kubeApiServer:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+# --- Default rules/dashboards (k3s-incompatible) ---
+defaultRules:
+  create: false
+
+# --- Grafana ---
+grafana:
+  defaultDashboardsEnabled: false
+  adminPassword: "{{ prometheus_grafana_admin_password }}"
+  service:
+    type: NodePort
+    nodePort: {{ prometheus_grafana_node_port }}
+  persistence:
+    enabled: true
+    storageClassName: {{ prometheus_storage_class }}
+    size: {{ prometheus_grafana_storage_size }}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# --- kubelet (primary scrape target on k3s) ---
+kubelet:
+  enabled: true
+  serviceMonitor:
+    https: true
+    cAdvisor: true
+    resource: true
+    probesMetrics: true
+
+# --- Prometheus ---
+prometheus:
+  service:
+    type: NodePort
+    nodePort: {{ prometheus_node_port }}
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    retention: "{{ prometheus_retention }}"
+    retentionSize: "{{ prometheus_retention_size }}"
+    walCompression: true
+    resources:
+      requests:
+        cpu: 200m
+        memory: 400Mi
+      limits:
+        cpu: 500m
+        memory: 1000Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: {{ prometheus_storage_class }}
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ prometheus_storage_size }}
+
+# --- AlertManager ---
+alertmanager:
+  service:
+    type: NodePort
+    nodePort: {{ prometheus_alertmanager_node_port }}
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: {{ prometheus_storage_class }}
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ prometheus_alertmanager_storage_size }}
+
+# --- prometheus-node-exporter (correct key name for this chart) ---
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+# --- kube-state-metrics (correct key name for this chart) ---
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 30m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
