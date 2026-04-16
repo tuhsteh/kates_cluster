@@ -1,7 +1,7 @@
 ---
 - name: Create k3s data directory on SSD
   ansible.builtin.file:
-    path: "{{ k3s_data_dir }}"
+    path: "{{ k3s_member_data_dir }}"
     state: directory
     mode: "0700"
     owner: root
@@ -47,31 +47,31 @@
 
 - name: Fetch node token from leader when not already in memory
   ansible.builtin.slurp:
-    src: "{{ k3s_data_dir }}/server/token"
-  register: _k3s_token_raw
+    src: "{{ k3s_member_data_dir }}/server/token"
+  register: k3s_member_token_raw
   delegate_to: "{{ groups['stage_leader'][0] }}"
   no_log: true
-  when: hostvars[groups['stage_leader'][0]].k3s_node_token is not defined
+  when: hostvars[groups['stage_leader'][0]].k3s_leader_node_token is not defined
 
 - name: Set node token fact
   ansible.builtin.set_fact:
-    k3s_node_token: >-
-      {{ hostvars[groups['stage_leader'][0]].k3s_node_token
-         if hostvars[groups['stage_leader'][0]].k3s_node_token is defined
-         else (_k3s_token_raw.content | b64decode | regex_replace('\n', '')) }}
+    k3s_member_node_token: >-
+      {{ hostvars[groups['stage_leader'][0]].k3s_leader_node_token
+         if hostvars[groups['stage_leader'][0]].k3s_leader_node_token is defined
+         else (k3s_member_token_raw.content | b64decode | regex_replace('\n', '')) }}
   no_log: true
 
 - name: Check if k3s-agent is already installed
   ansible.builtin.stat:
     path: /etc/systemd/system/k3s-agent.service
-  register: _k3s_agent_service
+  register: k3s_member_agent_service
 
 - name: Wait for k3s API server to be reachable
   ansible.builtin.wait_for:
     host: "{{ groups['stage_leader'][0] }}"
     port: 6443
     timeout: 120
-  when: not _k3s_agent_service.stat.exists
+  when: not k3s_member_agent_service.stat.exists
 
 - name: Install k3s agent
   ansible.builtin.get_url:
@@ -85,7 +85,7 @@
     creates: /etc/systemd/system/k3s-agent.service
   environment:
     K3S_URL: "https://{{ groups['stage_leader'][0] }}:6443"
-    K3S_TOKEN: "{{ k3s_node_token }}"
+    K3S_TOKEN: "{{ k3s_member_node_token }}"
   no_log: true
 
 - name: Enable and start k3s-agent service

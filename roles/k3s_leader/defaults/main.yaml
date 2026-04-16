@@ -1,2 +1,2 @@
 ---
-k3s_data_dir: /mnt/ssd/k3s
+k3s_leader_data_dir: /mnt/ssd/k3s

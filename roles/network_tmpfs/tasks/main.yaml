@@ -1,6 +1,6 @@
 - name: Check if dhcpcd is installed
   ansible.builtin.command: which dhcpcd
-  register: dhcpcd_which
+  register: network_tmpfs_dhcpcd_which
   failed_when: false
   changed_when: false
 
@@ -11,4 +11,4 @@
     fstype: tmpfs
     opts: rw,noatime,nosuid,nodev,mode=0755,size=16m
     state: mounted
-  when: dhcpcd_which.rc == 0
+  when: network_tmpfs_dhcpcd_which.rc == 0

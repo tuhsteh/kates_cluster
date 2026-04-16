@@ -1,15 +1,15 @@
 - name: Detect boot firmware path
   ansible.builtin.stat:
     path: /boot/firmware/cmdline.txt
-  register: boot_firmware
+  register: boot_opts_boot_firmware
 
 - name: Set cmdline_path fact
   ansible.builtin.set_fact:
-    cmdline_path: "{{ '/boot/firmware/cmdline.txt' if boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
+    boot_opts_cmdline_path: "{{ '/boot/firmware/cmdline.txt' if boot_opts_boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
 
 - name: Add fsck.mode=skip to cmdline.txt
   ansible.builtin.lineinfile:
-    path: "{{ cmdline_path }}"
+    path: "{{ boot_opts_cmdline_path }}"
     backrefs: true
     regexp: '^((?!.*fsck\.mode=skip).+rootwait.*)$'
     line: '\1 fsck.mode=skip'

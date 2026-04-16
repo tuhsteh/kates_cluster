@@ -7,11 +7,11 @@
 
 - name: Set ssd_device fact from NVMe device
   ansible.builtin.set_fact:
-    ssd_device: "{{ ansible_devices.keys() | select('match', '^nvme[0-9]+n[0-9]+$') | list | sort | first | default('') }}"
+    ssd_mount_device: "{{ ansible_devices.keys() | select('match', '^nvme[0-9]+n[0-9]+$') | list | sort | first | default('') }}"
 
 - name: Set ssd_device fact from SATA device (fallback when no NVMe found)
   ansible.builtin.set_fact:
-    ssd_device: >-
+    ssd_mount_device: >-
       {{
         ansible_devices
         | dict2items
@@ -23,7 +23,7 @@
         | first
         | default('')
       }}
-  when: ssd_device == ''
+  when: ssd_mount_device == ''
 
 - name: Fail if no SSD device was discovered
   ansible.builtin.fail:
@@ -31,36 +31,36 @@
       No m.2 SSD found on {{ inventory_hostname }}.
       Detected devices: {{ ansible_devices.keys() | list }}.
       Expected an NVMe device (nvme[0-9]+n[0-9]+) or a non-removable SATA device (sd[a-z]+).
-  when: ssd_device == ''
+  when: ssd_mount_device == ''
 
 - name: Create ext4 filesystem on SSD (skipped if filesystem already present)
   community.general.filesystem:
     fstype: ext4
-    dev: "/dev/{{ ssd_device }}"
+    dev: "/dev/{{ ssd_mount_device }}"
     force: false
 
 - name: Read UUID of SSD filesystem
-  ansible.builtin.command: "blkid -s UUID -o value /dev/{{ ssd_device }}"
-  register: ssd_uuid_result
+  ansible.builtin.command: "blkid -s UUID -o value /dev/{{ ssd_mount_device }}"
+  register: ssd_mount_uuid_result
   changed_when: false
   when: not ansible_check_mode
 
 - name: Set ssd_uuid fact
   ansible.builtin.set_fact:
-    ssd_uuid: "{{ ssd_uuid_result.stdout | trim }}"
+    ssd_mount_uuid: "{{ ssd_mount_uuid_result.stdout | trim }}"
   when: not ansible_check_mode
 
 - name: Set ssd_uuid fact (check mode placeholder)
   ansible.builtin.set_fact:
-    ssd_uuid: "CHECK-MODE-PLACEHOLDER"
+    ssd_mount_uuid: "CHECK-MODE-PLACEHOLDER"
   when: ansible_check_mode
 
 - name: Fail if UUID could not be read from SSD
   ansible.builtin.fail:
     msg: >
-      Could not read UUID from /dev/{{ ssd_device }} on {{ inventory_hostname }}.
+      Could not read UUID from /dev/{{ ssd_mount_device }} on {{ inventory_hostname }}.
       blkid returned empty output — filesystem may not have been created correctly.
-  when: not ansible_check_mode and ssd_uuid == ''
+  when: not ansible_check_mode and ssd_mount_uuid == ''
 
 - name: Create /mnt/ssd mount point directory
   ansible.builtin.file:
@@ -73,7 +73,7 @@
 - name: Mount SSD at /mnt/ssd and persist in /etc/fstab
   ansible.posix.mount:
     path: /mnt/ssd
-    src: "UUID={{ ssd_uuid }}"
+    src: "UUID={{ ssd_mount_uuid }}"
     fstype: ext4
     opts: defaults,noatime
     dump: "0"

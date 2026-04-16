@@ -35,28 +35,28 @@
 
 - name: Check if secret exists
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
-  register: secret_exists
+  register: docker_registry_secret_exists
   ignore_errors: true
   changed_when: false
 
 - name: Kubectl create secret
   ansible.builtin.command: kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
-  register: create_secret
-  when: secret_exists.rc == 1
+  register: docker_registry_create_secret
+  when: docker_registry_secret_exists.rc == 1
   changed_when: false
 
 - name: Show debug output
   ansible.builtin.debug:
-    msg: "{{ create_secret.stdout_lines }}"
-  when: secret_exists.rc == 1
+    msg: "{{ docker_registry_create_secret.stdout_lines }}"
+  when: docker_registry_secret_exists.rc == 1
 
 - name: Kubectl describe secret
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
-  register: secrets
-  when: secret_exists.rc == 1
+  register: docker_registry_secrets
+  when: docker_registry_secret_exists.rc == 1
   changed_when: false
 
 - name: Show debug output
   ansible.builtin.debug:
-    msg: "{{ secrets.stdout_lines }}"
-  when: secret_exists.rc == 1
+    msg: "{{ docker_registry_secrets.stdout_lines }}"
+  when: docker_registry_secret_exists.rc == 1

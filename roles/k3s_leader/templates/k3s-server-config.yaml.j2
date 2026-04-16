@@ -24,7 +24,7 @@ node-ip: "{{ ansible_default_ipv4.address }}"
 
 # --- Storage ---
 # Store all k3s data on the m.2 SSD to protect the SD card from write wear
-data-dir: "{{ k3s_data_dir }}"
+data-dir: "{{ k3s_leader_data_dir }}"
 
 # --- kubelet arguments ---
 # WARNING: root-dir moves emptyDir volumes and pod sandbox storage to SSD.
@@ -32,4 +32,4 @@ data-dir: "{{ k3s_data_dir }}"
 kubelet-arg:
   - "container-log-max-size=10Mi"
   - "container-log-max-files=3"
-  - "root-dir={{ k3s_data_dir }}/agent/kubelet"
+  - "root-dir={{ k3s_leader_data_dir }}/agent/kubelet"
