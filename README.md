@@ -26,7 +26,7 @@
   - Grafana
   - Prometheus
   - Jenkins (https://jenkins-x.io/v3/admin/platforms/k3s/)
-  - Syslog-ng
+  - Grafana Loki + Promtail (centralized logging if/when needed; replaces Syslog-ng)
   - Elasticsearch
 
   
