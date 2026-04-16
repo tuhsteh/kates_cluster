@@ -2,6 +2,7 @@
 - name: Date
   ansible.builtin.command: date
   register: date_datetime
+  changed_when: false
 
 - name: Show debug output
 

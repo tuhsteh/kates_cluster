@@ -3,6 +3,7 @@
   ansible.builtin.command: cat /boot/cmdline.txt
   become:  true
   register: print_boot_cmdline_txt_cmdline
+  changed_when: false
 
 - name: Show debug output
 

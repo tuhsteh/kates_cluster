@@ -2,6 +2,7 @@
 - name: Mem
   ansible.builtin.command: free -m
   register: mem_count_memcount
+  changed_when: false
 
 - name: Show debug output
 

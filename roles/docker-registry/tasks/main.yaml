@@ -38,11 +38,13 @@
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
   register: secret_exists
   ignore_errors: yes
+  changed_when: false
 
 - name: Kubectl create secret
   ansible.builtin.command: kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
   register:  create_secret
   when:  secret_exists.rc == 1
+  changed_when: false
 
 - name: Show debug output
 
@@ -54,6 +56,7 @@
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
   register: secrets
   when:  secret_exists.rc == 1
+  changed_when: false
 
 - name: Show debug output
 
