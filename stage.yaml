@@ -2,49 +2,90 @@
   hosts: stage_leader
   become: true
   roles:
-    - bashrc
-    - swapoff
-    - date
-    - mem_count
-    - print_boot_cmdline_txt
-    - cgroup
-    - fstab
-    - sysctl_sdcard
-    - log_ramdisk
-    - network_tmpfs
-    - apt_hardening
-    - services_headless
-    - fake_hwclock
-    - boot_opts
-    - apt_get
-    - ssd_mount
-    - longhorn_prereqs
-    - k3s_leader
-    - docker_registry
-    - longhorn
-    - prometheus
-    - selenium_media
-    - selenium_grid
+    - role: bashrc
+      tags: [linux]
+    - role: swapoff
+      tags: [linux]
+    - role: date
+      tags: [linux]
+    - role: mem_count
+      tags: [linux]
+    - role: print_boot_cmdline_txt
+      tags: [linux]
+    - role: cgroup
+      tags: [linux]
+    - role: fstab
+      tags: [linux]
+    - role: sysctl_sdcard
+      tags: [linux]
+    - role: log_ramdisk
+      tags: [linux]
+    - role: network_tmpfs
+      tags: [linux]
+    - role: apt_hardening
+      tags: [linux]
+    - role: services_headless
+      tags: [linux]
+    - role: fake_hwclock
+      tags: [linux]
+    - role: boot_opts
+      tags: [linux]
+    - role: apt_get
+      tags: [linux]
+    - role: ssd_mount
+      tags: [linux]
+    - role: longhorn_prereqs
+      tags: [storage]
+    - role: k3s_leader
+      tags: [k3s]
+    - role: docker_registry
+      tags: [registry]
+    - role: longhorn
+      tags: [storage]
+    - role: prometheus
+      tags: [monitoring]
+    - role: selenium_media
+      tags: [selenium]
+    - role: selenium_grid
+      tags: [selenium]
 
 - name: Configure stage members
   hosts: stage_members
   become: true
   roles:
-    - bashrc
-    - swapoff
-    - date
-    - mem_count
-    - print_boot_cmdline_txt
-    - cgroup
-    - fstab
-    - sysctl_sdcard
-    - log_ramdisk
-    - network_tmpfs
-    - apt_hardening
-    - services_headless
-    - fake_hwclock
-    - boot_opts
-    - apt_get
-    - ssd_mount
-    - longhorn_prereqs
-    - k3s_member
+    - role: bashrc
+      tags: [linux]
+    - role: swapoff
+      tags: [linux]
+    - role: date
+      tags: [linux]
+    - role: mem_count
+      tags: [linux]
+    - role: print_boot_cmdline_txt
+      tags: [linux]
+    - role: cgroup
+      tags: [linux]
+    - role: fstab
+      tags: [linux]
+    - role: sysctl_sdcard
+      tags: [linux]
+    - role: log_ramdisk
+      tags: [linux]
+    - role: network_tmpfs
+      tags: [linux]
+    - role: apt_hardening
+      tags: [linux]
+    - role: services_headless
+      tags: [linux]
+    - role: fake_hwclock
+      tags: [linux]
+    - role: boot_opts
+      tags: [linux]
+    - role: apt_get
+      tags: [linux]
+    - role: ssd_mount
+      tags: [linux]
+    - role: longhorn_prereqs
+      tags: [storage]
+    - role: k3s_member
+      tags: [k3s]

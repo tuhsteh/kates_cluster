@@ -1,6 +1,6 @@
 # Docker Registry on k3s / ARM64 — Research Cache
 
-**Cache Date:** 2025-07-14
+**Cache Date:** 2026-04-14
 **Sources:** https://carpie.net/articles/installing-docker-registry-on-k3s, https://docs.k3s.io/installation/private-registry, Docker Hub registry:2 manifest, community k3s + Longhorn patterns
 **Note:** Medium article (geekculture) returned 403 — covered by cross-referencing other sources.
 
