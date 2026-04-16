@@ -5,5 +5,6 @@
 
 - name: Show debug output
 
-  ansible.builtin.debug: msg="{{ date_datetime.stdout_lines }}"
+  ansible.builtin.debug:
+    msg: "{{ date_datetime.stdout_lines }}"
 

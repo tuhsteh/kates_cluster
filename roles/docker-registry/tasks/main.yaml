@@ -46,7 +46,8 @@
 
 - name: Show debug output
 
-  ansible.builtin.debug: msg="{{ create_secret.stdout_lines }}"
+  ansible.builtin.debug:
+    msg: "{{ create_secret.stdout_lines }}"
   when:  secret_exists.rc == 1
 
 - name: Kubectl describe secret
@@ -56,6 +57,7 @@
 
 - name: Show debug output
 
-  ansible.builtin.debug: msg="{{ secrets.stdout_lines }}"
+  ansible.builtin.debug:
+    msg: "{{ secrets.stdout_lines }}"
   when:  secret_exists.rc == 1
 

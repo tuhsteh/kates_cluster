@@ -6,5 +6,6 @@
 
 - name: Show debug output
 
-  ansible.builtin.debug: msg="{{ print_boot_cmdline_txt_cmdline.stdout_lines }}"
+  ansible.builtin.debug:
+    msg: "{{ print_boot_cmdline_txt_cmdline.stdout_lines }}"
 
