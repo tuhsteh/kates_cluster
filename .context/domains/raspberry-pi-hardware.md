@@ -244,3 +244,25 @@ The `longhorn` role uses `k3s_leader_data_dir` from the `k3s_leader` role (both 
 - **multipathd interference** (HIGH): See above — disable before deploying Longhorn.
 - **instance-manager CPU spikes** (MEDIUM): Periodic ~1h45m load spikes on RPi nodes. Mitigate with `guaranteed-instance-manager-cpu: 10`.
 - **CSI + custom k3s data-dir**: Longhorn's CSI driver uses `/var/lib/kubelet` (not the k3s data-dir). Verify `longhorn-driver-deployer` DaemonSet is running if CSI fails after deploy.
+
+## Ansible Cross-Role Variable Dependencies
+
+When one role consumes a variable that is **owned and defaulted by another role** running in the same play, do NOT re-declare the variable as a local default. Duplicate defaults create silent drift: if the owning role's value changes, the consumer silently uses the stale copy.
+
+**Pattern:**
+```yaml
+# tasks/main.yaml of the consuming role
+# Depends on: k3s_leader role — provides k3s_leader_data_dir
+- name: First task that uses k3s_leader_data_dir
+  ansible.builtin.file:
+    path: "{{ k3s_leader_data_dir }}/server/manifests"
+    ...
+```
+
+**What NOT to do:**
+```yaml
+# consuming_role/defaults/main.yaml  ← WRONG
+k3s_leader_data_dir: /mnt/ssd/k3s   # duplicates k3s_leader's default — will drift silently
+```
+
+The `# Depends on:` comment serves as self-documentation so future maintainers understand why the variable is used but not defined in the role's own defaults.
