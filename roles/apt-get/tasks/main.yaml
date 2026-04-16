@@ -1,19 +1,25 @@
 
-- name: apt-get update
+- name: Apt-get update
   ansible.builtin.command:  apt-get update  
-  register: update
+  register: apt_get_update
 
-- ansible.builtin.debug:  msg="{{ update.stdout_lines }}"
+- name: Show debug output
 
-- name: apt-get upgrade
+  ansible.builtin.debug: msg="{{ apt_get_update.stdout_lines }}"
+
+- name: Apt-get upgrade
   ansible.builtin.command:  apt-get -y upgrade  
-  register: upgrade
+  register: apt_get_upgrade
 
-- ansible.builtin.debug:  msg="{{ upgrade.stdout_lines }}"
+- name: Show debug output
 
-- name: apt-get autoremove
+  ansible.builtin.debug: msg="{{ apt_get_upgrade.stdout_lines }}"
+
+- name: Apt-get autoremove
   ansible.builtin.command:  apt-get -y autoremove  
-  register: autoremove
+  register: apt_get_autoremove
 
-- ansible.builtin.debug:  msg="{{ autoremove.stdout_lines }}"
+- name: Show debug output
+
+  ansible.builtin.debug: msg="{{ apt_get_autoremove.stdout_lines }}"
 

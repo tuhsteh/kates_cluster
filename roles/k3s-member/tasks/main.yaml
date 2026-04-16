@@ -28,7 +28,7 @@
     group: root
   notify: Reload systemd
 
-- name: ensure k3s config directory exists
+- name: Ensure k3s config directory exists
   ansible.builtin.file:
     path: /etc/rancher/k3s
     state: directory
@@ -36,7 +36,7 @@
     group: root
     mode: '0755'
 
-- name: write k3s agent config
+- name: Write k3s agent config
   ansible.builtin.template:
     src: k3s-agent-config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
@@ -45,7 +45,7 @@
     mode: '0644'
   notify: restart k3s-agent
 
-- name: fetch node token from leader when not already in memory
+- name: Fetch node token from leader when not already in memory
   ansible.builtin.slurp:
     src: "{{ k3s_data_dir }}/server/token"
   register: _k3s_token_raw
@@ -53,7 +53,7 @@
   no_log: true
   when: hostvars[groups['stage_leader'][0]].k3s_node_token is not defined
 
-- name: set node token fact
+- name: Set node token fact
   ansible.builtin.set_fact:
     k3s_node_token: >-
       {{ hostvars[groups['stage_leader'][0]].k3s_node_token
@@ -61,19 +61,19 @@
          else (_k3s_token_raw.content | b64decode | regex_replace('\n', '')) }}
   no_log: true
 
-- name: check if k3s-agent is already installed
+- name: Check if k3s-agent is already installed
   ansible.builtin.stat:
     path: /etc/systemd/system/k3s-agent.service
   register: _k3s_agent_service
 
-- name: wait for k3s API server to be reachable
+- name: Wait for k3s API server to be reachable
   ansible.builtin.wait_for:
     host: "{{ groups['stage_leader'][0] }}"
     port: 6443
     timeout: 120
   when: not _k3s_agent_service.stat.exists
 
-- name: install k3s agent
+- name: Install k3s agent
   ansible.builtin.shell:
     cmd: curl -sfL https://get.k3s.io | sh -
     creates: /etc/systemd/system/k3s-agent.service
@@ -82,7 +82,7 @@
     K3S_TOKEN: "{{ k3s_node_token }}"
   no_log: true
 
-- name: enable and start k3s-agent service
+- name: Enable and start k3s-agent service
   ansible.builtin.service:
     name: k3s-agent
     state: started

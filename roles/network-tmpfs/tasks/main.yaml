@@ -1,10 +1,10 @@
-- name: check if dhcpcd is installed
+- name: Check if dhcpcd is installed
   ansible.builtin.command: which dhcpcd
   register: dhcpcd_which
   failed_when: false
   changed_when: false
 
-- name: mount /var/lib/dhcp as tmpfs
+- name: Mount /var/lib/dhcp as tmpfs
   ansible.posix.mount:
     path: /var/lib/dhcp
     src: tmpfs

@@ -1,9 +1,9 @@
-- name: check if fake-hwclock hourly cron exists
+- name: Check if fake-hwclock hourly cron exists
   ansible.builtin.stat:
     path: /etc/cron.hourly/fake-hwclock
   register: fake_hwclock_cron
 
-- name: disable fake-hwclock hourly SD card write
+- name: Disable fake-hwclock hourly SD card write
   ansible.builtin.copy:
     dest: /etc/cron.hourly/fake-hwclock
     content: |

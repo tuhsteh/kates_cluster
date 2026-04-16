@@ -28,7 +28,7 @@
     group: root
   notify: Reload systemd
 
-- name: ensure k3s config directory exists
+- name: Ensure k3s config directory exists
   ansible.builtin.file:
     path: /etc/rancher/k3s
     state: directory
@@ -36,7 +36,7 @@
     group: root
     mode: '0755'
 
-- name: write k3s server config
+- name: Write k3s server config
   ansible.builtin.template:
     src: k3s-server-config.yaml.j2
     dest: /etc/rancher/k3s/config.yaml
@@ -45,50 +45,50 @@
     mode: '0644'
   notify: restart k3s
 
-- name: install k3s server
+- name: Install k3s server
   ansible.builtin.shell:
     cmd: curl -sfL https://get.k3s.io | sh -
     creates: /usr/local/bin/k3s
 
-- name: enable and start k3s service
+- name: Enable and start k3s service
   ansible.builtin.service:
     name: k3s
     state: started
     enabled: true
 
-- name: flush handlers before waiting for cluster readiness
+- name: Flush handlers before waiting for cluster readiness
   ansible.builtin.meta: flush_handlers
 
-- name: wait for k3s token file
+- name: Wait for k3s token file
   ansible.builtin.wait_for:
     path: "{{ k3s_data_dir }}/server/token"
     timeout: 120
 
-- name: read node token from leader
+- name: Read node token from leader
   ansible.builtin.slurp:
     src: "{{ k3s_data_dir }}/server/token"
   register: k3s_token_raw
   no_log: true
 
-- name: set node token fact
+- name: Set node token fact
   ansible.builtin.set_fact:
     k3s_node_token: "{{ k3s_token_raw.content | b64decode | regex_replace('\n', '') }}"
   no_log: true
 
-- name: wait for k3s API to be available
+- name: Wait for k3s API to be available
   ansible.builtin.wait_for:
     host: "127.0.0.1"
     port: 6443
     timeout: 120
 
-- name: check if local kubeconfig already exists
+- name: Check if local kubeconfig already exists
   ansible.builtin.stat:
     path: "{{ lookup('env', 'HOME') }}/.kube/k3s-kate.yaml"
   register: _kubeconfig_stat
   delegate_to: localhost
   become: false
 
-- name: ensure local .kube directory exists
+- name: Ensure local .kube directory exists
   ansible.builtin.file:
     path: "{{ lookup('env', 'HOME') }}/.kube"
     state: directory
@@ -96,7 +96,7 @@
   delegate_to: localhost
   become: false
 
-- name: fetch kubeconfig from leader
+- name: Fetch kubeconfig from leader
   ansible.builtin.fetch:
     src: /etc/rancher/k3s/k3s.yaml
     dest: /tmp/k3s-kate.yaml
@@ -104,7 +104,7 @@
   no_log: true
   when: not _kubeconfig_stat.stat.exists
 
-- name: rewrite kubeconfig server address to external hostname
+- name: Rewrite kubeconfig server address to external hostname
   ansible.builtin.replace:
     path: /tmp/k3s-kate.yaml
     regexp: 'https://127\.0\.0\.1:6443'
@@ -113,7 +113,7 @@
   become: false
   when: not _kubeconfig_stat.stat.exists
 
-- name: copy kubeconfig to local .kube directory
+- name: Copy kubeconfig to local .kube directory
   ansible.builtin.copy:
     src: /tmp/k3s-kate.yaml
     dest: "{{ lookup('env', 'HOME') }}/.kube/k3s-kate.yaml"
@@ -123,7 +123,7 @@
   no_log: true
   when: not _kubeconfig_stat.stat.exists
 
-- name: remove temporary kubeconfig
+- name: Remove temporary kubeconfig
   ansible.builtin.file:
     path: /tmp/k3s-kate.yaml
     state: absent

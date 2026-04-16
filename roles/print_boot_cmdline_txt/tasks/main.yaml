@@ -1,8 +1,10 @@
 
-- name: print /boot/cmdline.txt
+- name: Print /boot/cmdline.txt
   ansible.builtin.shell:  "cat /boot/cmdline.txt"
   become:  true
-  register: cmdline
+  register: print_boot_cmdline_txt_cmdline
 
-- ansible.builtin.debug:  msg="{{ cmdline.stdout_lines }}"
+- name: Show debug output
+
+  ansible.builtin.debug: msg="{{ print_boot_cmdline_txt_cmdline.stdout_lines }}"
 

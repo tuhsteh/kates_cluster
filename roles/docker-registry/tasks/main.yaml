@@ -1,8 +1,8 @@
 
-- name: apt-get update
+- name: Apt-get update
   ansible.builtin.shell:  apt-get update -y
 
-- name: install Apache2-utils
+- name: Install Apache2-utils
   ansible.builtin.apt:
     name: apache2-utils
     state: present
@@ -15,12 +15,12 @@
   ansible.builtin.apt:
     autoremove: yes
 
-- name: install pip
+- name: Install pip
   ansible.builtin.apt:
     name: python3-pip
     state: present
 
-- name: install python passlib
+- name: Install python passlib
   ansible.builtin.pip:
     name: passlib
     state: present
@@ -38,19 +38,23 @@
   register: secret_exists
   ignore_errors: yes
 
-- name: kubectl create secret
+- name: Kubectl create secret
   ansible.builtin.shell:  kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
   register:  create_secret
   when:  secret_exists.rc == 1
 
-- ansible.builtin.debug: msg="{{ create_secret.stdout_lines }}"
+- name: Show debug output
+
+  ansible.builtin.debug: msg="{{ create_secret.stdout_lines }}"
   when:  secret_exists.rc == 1
 
-- name: kubectl describe secret
+- name: Kubectl describe secret
   ansible.builtin.shell:  kubectl describe secret docker-registry-htpasswd
   register: secrets
   when:  secret_exists.rc == 1
 
-- ansible.builtin.debug: msg="{{ secrets.stdout_lines }}"
+- name: Show debug output
+
+  ansible.builtin.debug: msg="{{ secrets.stdout_lines }}"
   when:  secret_exists.rc == 1
 

@@ -1,4 +1,4 @@
-- name: deploy sysctl SD card wear reduction config
+- name: Deploy sysctl SD card wear reduction config
   ansible.builtin.copy:
     src: 99-sdcard.conf
     dest: /etc/sysctl.d/99-sdcard.conf

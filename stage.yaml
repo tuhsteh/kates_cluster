@@ -1,4 +1,5 @@
 - hosts: stage_leader
+  name: Configure stage leader
   become: true
   roles:
     - bashrc
@@ -23,6 +24,7 @@
 
 
 - hosts: stage_members
+  name: Configure stage members
   become: true
   roles:
     - bashrc

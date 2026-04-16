@@ -1,5 +1,5 @@
 ---
-- name: reboot
+- name: Reboot
   ansible.builtin.reboot:
     msg: "Rebooting for kernel/boot changes"
     reboot_timeout: 300
