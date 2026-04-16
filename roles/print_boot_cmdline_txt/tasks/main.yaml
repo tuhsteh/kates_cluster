@@ -1,6 +1,6 @@
 - name: Print /boot/cmdline.txt
   ansible.builtin.command: cat /boot/cmdline.txt
-  become:  true
+  become: true
   register: print_boot_cmdline_txt_cmdline
   changed_when: false
 

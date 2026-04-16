@@ -30,7 +30,7 @@
     state: present
     name: registry
     password: '1qazxsw2'
-    path:  /home/pi/htpasswd
+    path: /home/pi/htpasswd
     mode: 0640
 
 - name: Check if secret exists
@@ -41,22 +41,22 @@
 
 - name: Kubectl create secret
   ansible.builtin.command: kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
-  register:  create_secret
-  when:  secret_exists.rc == 1
+  register: create_secret
+  when: secret_exists.rc == 1
   changed_when: false
 
 - name: Show debug output
   ansible.builtin.debug:
     msg: "{{ create_secret.stdout_lines }}"
-  when:  secret_exists.rc == 1
+  when: secret_exists.rc == 1
 
 - name: Kubectl describe secret
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
   register: secrets
-  when:  secret_exists.rc == 1
+  when: secret_exists.rc == 1
   changed_when: false
 
 - name: Show debug output
   ansible.builtin.debug:
     msg: "{{ secrets.stdout_lines }}"
-  when:  secret_exists.rc == 1
+  when: secret_exists.rc == 1
