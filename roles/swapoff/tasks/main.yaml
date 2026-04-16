@@ -1,16 +1,16 @@
 
 - name: swapoff
-  command: swapoff -a
+  ansible.builtin.command: swapoff -a
   changed_when: false
 
 - name: purge dphys-swapfile package
-  apt:
+  ansible.builtin.apt:
     name: dphys-swapfile
     state: absent
     purge: yes
 
 - name: remove /var/swap file
-  file:
+  ansible.builtin.file:
     path: /var/swap
     state: absent
 

@@ -1,14 +1,14 @@
 - name: detect boot firmware path
-  stat:
+  ansible.builtin.stat:
     path: /boot/firmware/cmdline.txt
   register: boot_firmware
 
 - name: set cmdline_path fact
-  set_fact:
+  ansible.builtin.set_fact:
     cmdline_path: "{{ '/boot/firmware/cmdline.txt' if boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
 
 - name: Activating cgroup support
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ cmdline_path }}"
     backrefs: yes
     regexp: '^((?!.*cgroup_enable=memory).+rootwait.*)$'

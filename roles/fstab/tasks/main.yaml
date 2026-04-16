@@ -1,5 +1,5 @@
 - name: add noatime and commit=60 to root partition
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/fstab
     regexp: '^(\S+\s+/\s+ext4\s+)\S+(\s+\d+\s+\d+\s*)$'
     line: '\1defaults,noatime,commit=60\2'

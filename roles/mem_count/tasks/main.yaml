@@ -1,7 +1,7 @@
 
 - name: mem
-  shell:  free -m
+  ansible.builtin.shell:  free -m
   register: memcount
 
-- debug:  msg="{{ memcount.stdout_lines }}"
+- ansible.builtin.debug:  msg="{{ memcount.stdout_lines }}"
 

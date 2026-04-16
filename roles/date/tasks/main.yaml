@@ -1,7 +1,7 @@
 
 - name: date
-  shell:  date
+  ansible.builtin.shell:  date
   register: datetime
 
-- debug:  msg="{{ datetime.stdout_lines }}"
+- ansible.builtin.debug:  msg="{{ datetime.stdout_lines }}"
 
