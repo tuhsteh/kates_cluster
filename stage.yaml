@@ -18,8 +18,10 @@
     - boot_opts
     - apt_get
     - ssd_mount
+    - longhorn_prereqs
     - k3s_leader
     - docker_registry
+    - longhorn
 
 - name: Configure stage members
   hosts: stage_members
@@ -41,4 +43,5 @@
     - boot_opts
     - apt_get
     - ssd_mount
+    - longhorn_prereqs
     - k3s_member
