@@ -52,7 +52,8 @@
     mode: "0755"
 
 - name: Run k3s server installer
-  ansible.builtin.command: /usr/local/bin/k3s-install.sh
+  ansible.builtin.command:
+    cmd: /usr/local/bin/k3s-install.sh
     creates: /usr/local/bin/k3s
 
 - name: Enable and start k3s service
