@@ -2,13 +2,13 @@
   ansible.builtin.systemd:
     name: apt-daily.timer
     masked: true
-  ignore_errors: true
+  failed_when: false
 
 - name: Mask apt-daily-upgrade timer
   ansible.builtin.systemd:
     name: apt-daily-upgrade.timer
     masked: true
-  ignore_errors: true
+  failed_when: false
 
 - name: Remove unattended-upgrades
   ansible.builtin.apt:

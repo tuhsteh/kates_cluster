@@ -2,16 +2,16 @@
   ansible.builtin.systemd:
     name: triggerhappy.service
     masked: true
-  ignore_errors: true
+  failed_when: false
 
 - name: Mask bluetooth service
   ansible.builtin.systemd:
     name: bluetooth.service
     masked: true
-  ignore_errors: true
+  failed_when: false
 
 - name: Mask hciuart service
   ansible.builtin.systemd:
     name: hciuart.service
     masked: true
-  ignore_errors: true
+  failed_when: false
