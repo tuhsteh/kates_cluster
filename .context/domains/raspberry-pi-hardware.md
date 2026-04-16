@@ -150,3 +150,97 @@ Pre-creation of `k3s_data_dir` includes a mount guard to prevent silent creation
 ```yaml
 when: (ansible_mounts | selectattr('mount', 'equalto', '/mnt/ssd') | list | length) > 0
 ```
+
+## Longhorn Storage
+
+### Version
+Longhorn v1.11.1 (latest stable as of 2026-03-11). Minimum Kubernetes: v1.25.
+
+### Required apt Packages (all nodes)
+```bash
+apt-get install -y open-iscsi nfs-common cryptsetup dmsetup
+```
+- `open-iscsi` — iSCSI initiator; required for all PV operations
+- `nfs-common` — NFSv4 client for RWX volumes and backup
+- `cryptsetup` — LUKS2 encryption (checked by preflight)
+- `dmsetup` — Device Mapper userspace; **often missed but hard-required**
+- `jq` is NOT in the official prerequisite list
+
+### Kernel Modules
+Persist via `/etc/modules-load.d/longhorn.conf`:
+```
+iscsi_tcp   # required
+dm_crypt    # required for encrypted volumes
+```
+`systemd-modules-load.service` reads this at boot. Load immediately for current boot with `modprobe`.
+
+### iscsid Service (Bookworm Socket Activation)
+Enable `iscsid.socket` — **not** `iscsid.service`. Bookworm uses socket activation; `iscsid.service` showing inactive is correct and expected.
+```yaml
+- name: Enable iscsid socket (Bookworm socket-activation — iscsid.service will show inactive; this is correct)
+  ansible.builtin.service:
+    name: iscsid.socket
+    state: started
+    enabled: true
+```
+
+### multipathd Interference
+If `multipathd.service` is running it will claim Longhorn block devices causing:
+`mount: /dev/longhorn/pvc-xxx: already mounted or mount point busy`
+
+Disable conditionally (do not fail if service absent):
+```yaml
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Disable multipathd if present and enabled
+  ansible.builtin.service:
+    name: multipathd
+    state: stopped
+    enabled: false
+  when:
+    - "'multipathd.service' in ansible_facts.services"
+    - ansible_facts.services['multipathd.service'].status == 'enabled'
+```
+
+### k3s HelmChart CRD Deployment
+Drop a `HelmChart` resource into `{{ k3s_leader_data_dir }}/server/manifests/` — k3s helm-controller handles install automatically. **`failurePolicy: abort` is critical** — default `reinstall` will silently delete Longhorn on any helm failure.
+
+```yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  annotations:
+    helmcharts.cattle.io/managed-by: helm-controller
+  finalizers:
+    - wrangler.cattle.io/on-helm-chart-remove
+  name: longhorn
+  namespace: kube-system          # must be kube-system for auto-deploy
+spec:
+  version: "v1.11.1"
+  chart: longhorn
+  repo: https://charts.longhorn.io
+  failurePolicy: abort            # CRITICAL — never omit
+  targetNamespace: longhorn-system
+  createNamespace: true
+  valuesContent: |-
+    defaultSettings:
+      defaultDataPath: /mnt/ssd/longhorn
+      defaultReplicaCount: 3
+      replicaSoftAntiAffinity: true
+      replicaAutoBalance: least-effort
+    persistence:
+      defaultClassReplicaCount: 3
+```
+
+### Cross-Role Variable Dependency
+The `longhorn` role uses `k3s_leader_data_dir` from the `k3s_leader` role (both run in the same play). **Do not re-declare this variable in `longhorn/defaults/main.yaml`** — duplicating it creates a silent drift hazard if the k3s data dir ever changes.
+
+### Data Path
+`/mnt/ssd/longhorn` — created by `longhorn_prereqs` role with the SSD mount guard. Longhorn stores volume replicas here on every node.
+
+### Known Issues on ARM64 / k3s
+- **nftables/iptables conflict** (HIGH): Bookworm defaults to nftables; k3s nodes must use a consistent iptables backend or Flannel overlay traffic is silently dropped, causing replica communication failures.
+- **multipathd interference** (HIGH): See above — disable before deploying Longhorn.
+- **instance-manager CPU spikes** (MEDIUM): Periodic ~1h45m load spikes on RPi nodes. Mitigate with `guaranteed-instance-manager-cpu: 10`.
+- **CSI + custom k3s data-dir**: Longhorn's CSI driver uses `/var/lib/kubelet` (not the k3s data-dir). Verify `longhorn-driver-deployer` DaemonSet is running if CSI fails after deploy.
