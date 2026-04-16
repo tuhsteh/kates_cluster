@@ -10,11 +10,11 @@
 
 - name: Remove useless packages from the cache
   ansible.builtin.apt:
-    autoclean: yes
+    autoclean: true
 
 - name: Remove dependencies that are no longer required
   ansible.builtin.apt:
-    autoremove: yes
+    autoremove: true
 
 - name: Install pip
   ansible.builtin.apt:
@@ -37,7 +37,7 @@
 - name: Check if secret exists
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
   register: secret_exists
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
 
 - name: Kubectl create secret
@@ -47,7 +47,6 @@
   changed_when: false
 
 - name: Show debug output
-
   ansible.builtin.debug:
     msg: "{{ create_secret.stdout_lines }}"
   when:  secret_exists.rc == 1
@@ -59,7 +58,6 @@
   changed_when: false
 
 - name: Show debug output
-
   ansible.builtin.debug:
     msg: "{{ secrets.stdout_lines }}"
   when:  secret_exists.rc == 1

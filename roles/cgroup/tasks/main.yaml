@@ -10,7 +10,7 @@
 - name: Activating cgroup support
   ansible.builtin.lineinfile:
     path: "{{ cgroup_cmdline_path }}"
-    backrefs: yes
+    backrefs: true
     regexp: '^((?!.*cgroup_enable=memory).+rootwait.*)$'
     line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
   notify: reboot

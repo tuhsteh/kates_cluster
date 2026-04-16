@@ -10,7 +10,7 @@
 - name: Add fsck.mode=skip to cmdline.txt
   ansible.builtin.lineinfile:
     path: "{{ cmdline_path }}"
-    backrefs: yes
+    backrefs: true
     regexp: '^((?!.*fsck\.mode=skip).+rootwait.*)$'
     line: '\1 fsck.mode=skip'
   notify: reboot

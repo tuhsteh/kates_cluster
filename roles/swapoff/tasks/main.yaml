@@ -7,7 +7,7 @@
   ansible.builtin.apt:
     name: dphys-swapfile
     state: absent
-    purge: yes
+    purge: true
 
 - name: Remove /var/swap file
   ansible.builtin.file:

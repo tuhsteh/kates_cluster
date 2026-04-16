@@ -5,7 +5,6 @@
   changed_when: false
 
 - name: Show debug output
-
   ansible.builtin.debug:
     msg: "{{ mem_count_memcount.stdout_lines }}"
 

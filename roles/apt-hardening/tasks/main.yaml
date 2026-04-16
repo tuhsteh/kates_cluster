@@ -1,17 +1,17 @@
 - name: Mask apt-daily timer
   ansible.builtin.systemd:
     name: apt-daily.timer
-    masked: yes
-  ignore_errors: yes
+    masked: true
+  ignore_errors: true
 
 - name: Mask apt-daily-upgrade timer
   ansible.builtin.systemd:
     name: apt-daily-upgrade.timer
-    masked: yes
-  ignore_errors: yes
+    masked: true
+  ignore_errors: true
 
 - name: Remove unattended-upgrades
   ansible.builtin.apt:
     name: unattended-upgrades
     state: absent
-    purge: yes
+    purge: true
