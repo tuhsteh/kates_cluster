@@ -9,17 +9,17 @@
     - print_boot_cmdline_txt
     - cgroup
     - fstab
-    - sysctl-sdcard
+    - sysctl_sdcard
     - log_ramdisk
-    - network-tmpfs
-    - apt-hardening
-    - services-headless
-    - fake-hwclock
-    - boot-opts
-    - apt-get
-    - ssd-mount
-    - k3s-leader
-    - docker-registry
+    - network_tmpfs
+    - apt_hardening
+    - services_headless
+    - fake_hwclock
+    - boot_opts
+    - apt_get
+    - ssd_mount
+    - k3s_leader
+    - docker_registry
 
 - hosts: stage_members
   name: Configure stage members
@@ -32,13 +32,13 @@
     - print_boot_cmdline_txt
     - cgroup
     - fstab
-    - sysctl-sdcard
+    - sysctl_sdcard
     - log_ramdisk
-    - network-tmpfs
-    - apt-hardening
-    - services-headless
-    - fake-hwclock
-    - boot-opts
-    - apt-get
-    - ssd-mount
-    - k3s-member
+    - network_tmpfs
+    - apt_hardening
+    - services_headless
+    - fake_hwclock
+    - boot_opts
+    - apt_get
+    - ssd_mount
+    - k3s_member
