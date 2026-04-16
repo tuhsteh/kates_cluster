@@ -1,5 +1,5 @@
-- hosts: stage_leader
-  name: Configure stage leader
+- name: Configure stage leader
+  hosts: stage_leader
   become: true
   roles:
     - bashrc
@@ -21,8 +21,8 @@
     - k3s_leader
     - docker_registry
 
-- hosts: stage_members
-  name: Configure stage members
+- name: Configure stage members
+  hosts: stage_members
   become: true
   roles:
     - bashrc
