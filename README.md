@@ -25,7 +25,7 @@
   - Docker registry on the cluster (https://carpie.net/articles/installing-docker-registry-on-k3s)
   - Grafana
   - Prometheus
-  - Tekton or Argo Workflows (in-cluster CI if/when needed; replaces Jenkins)
+  - GitHub Actions for external CI; Tekton or Argo Workflows if in-cluster pipelines are ever needed
   - Grafana Loki + Promtail (centralized logging if/when needed; replaces Syslog-ng)
   - Elasticsearch
 
