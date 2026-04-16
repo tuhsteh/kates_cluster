@@ -1,6 +1,7 @@
 
 - name: Apt-get update
-  ansible.builtin.command:  apt-get update  
+  ansible.builtin.apt:
+    update_cache: true
   register: apt_get_update
 
 - name: Show debug output
@@ -8,7 +9,8 @@
   ansible.builtin.debug: msg="{{ apt_get_update.stdout_lines }}"
 
 - name: Apt-get upgrade
-  ansible.builtin.command:  apt-get -y upgrade  
+  ansible.builtin.apt:
+    upgrade: "yes"
   register: apt_get_upgrade
 
 - name: Show debug output
@@ -16,7 +18,8 @@
   ansible.builtin.debug: msg="{{ apt_get_upgrade.stdout_lines }}"
 
 - name: Apt-get autoremove
-  ansible.builtin.command:  apt-get -y autoremove  
+  ansible.builtin.apt:
+    autoremove: true
   register: apt_get_autoremove
 
 - name: Show debug output

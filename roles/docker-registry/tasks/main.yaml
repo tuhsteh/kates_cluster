@@ -1,6 +1,7 @@
 
 - name: Apt-get update
-  ansible.builtin.shell:  apt-get update -y
+  ansible.builtin.apt:
+    update_cache: true
 
 - name: Install Apache2-utils
   ansible.builtin.apt:

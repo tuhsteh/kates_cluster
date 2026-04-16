@@ -46,8 +46,13 @@
   notify: restart k3s
 
 - name: Install k3s server
-  ansible.builtin.shell:
-    cmd: curl -sfL https://get.k3s.io | sh -
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /usr/local/bin/k3s-install.sh
+    mode: "0755"
+
+- name: Run k3s server installer
+  ansible.builtin.command: /usr/local/bin/k3s-install.sh
     creates: /usr/local/bin/k3s
 
 - name: Enable and start k3s service
