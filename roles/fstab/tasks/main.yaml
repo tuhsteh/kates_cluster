@@ -1,21 +1,21 @@
-- name: add noatime and commit=60 to root partition
-  lineinfile:
+- name: Add noatime and commit=60 to root partition
+  ansible.builtin.lineinfile:
     path: /etc/fstab
     regexp: '^(\S+\s+/\s+ext4\s+)\S+(\s+\d+\s+\d+\s*)$'
     line: '\1defaults,noatime,commit=60\2'
-    backrefs: yes
+    backrefs: true
   notify: reboot
 
-- name: mount /tmp as tmpfs
-  mount:
+- name: Mount /tmp as tmpfs
+  ansible.posix.mount:
     path: /tmp
     src: tmpfs
     fstype: tmpfs
     opts: rw,noatime,nosuid,nodev,size=128m
     state: mounted
 
-- name: mount /var/tmp as tmpfs
-  mount:
+- name: Mount /var/tmp as tmpfs
+  ansible.posix.mount:
     path: /var/tmp
     src: tmpfs
     fstype: tmpfs

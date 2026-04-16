@@ -1,7 +1,8 @@
+- name: Date
+  ansible.builtin.command: date
+  register: date_datetime
+  changed_when: false
 
-- name: date
-  shell:  date
-  register: datetime
-
-- debug:  msg="{{ datetime.stdout_lines }}"
-
+- name: Show debug output
+  ansible.builtin.debug:
+    msg: "{{ date_datetime.stdout_lines }}"

@@ -1,33 +1,33 @@
-- name: detect boot firmware path
-  stat:
+- name: Detect boot firmware path
+  ansible.builtin.stat:
     path: /boot/firmware/cmdline.txt
-  register: boot_firmware
+  register: cgroup_boot_firmware
 
-- name: set cmdline_path fact
-  set_fact:
-    cmdline_path: "{{ '/boot/firmware/cmdline.txt' if boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
+- name: Set cmdline_path fact
+  ansible.builtin.set_fact:
+    cgroup_cmdline_path: "{{ '/boot/firmware/cmdline.txt' if cgroup_boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
 
 - name: Activating cgroup support
-  lineinfile:
-    path: "{{ cmdline_path }}"
-    backrefs: yes
+  ansible.builtin.lineinfile:
+    path: "{{ cgroup_cmdline_path }}"
+    backrefs: true
     regexp: '^((?!.*cgroup_enable=memory).+rootwait.*)$'
     line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
   notify: reboot
 
 - name: Flush iptables before changing to iptables-legacy
-  iptables:
+  ansible.builtin.iptables:
     flush: true
   changed_when: false
 
 - name: Changing to iptables-legacy
-  alternatives:
+  community.general.alternatives:
     path: /usr/sbin/iptables-legacy
     name: iptables
-  register: ip4_legacy
+  register: cgroup_ip4_legacy
 
 - name: Changing to ip6tables-legacy
-  alternatives:
+  community.general.alternatives:
     path: /usr/sbin/ip6tables-legacy
     name: ip6tables
-  register: ip6_legacy
+  register: cgroup_ip6_legacy

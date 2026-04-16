@@ -1,0 +1,62 @@
+- name: Apt-get update
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install Apache2-utils
+  ansible.builtin.apt:
+    name: apache2-utils
+    state: present
+
+- name: Remove useless packages from the cache
+  ansible.builtin.apt:
+    autoclean: true
+
+- name: Remove dependencies that are no longer required
+  ansible.builtin.apt:
+    autoremove: true
+
+- name: Install pip
+  ansible.builtin.apt:
+    name: python3-pip
+    state: present
+
+- name: Install python passlib
+  ansible.builtin.pip:
+    name: passlib
+    state: present
+
+- name: Add htpasswd
+  community.general.htpasswd:
+    state: present
+    name: registry
+    password: '1qazxsw2'
+    path: /home/pi/htpasswd
+    mode: "0640"
+
+- name: Check if secret exists
+  ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
+  register: docker_registry_secret_exists
+  ignore_errors: true
+  changed_when: false
+
+- name: Kubectl create secret
+  ansible.builtin.command: kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
+  register: docker_registry_create_secret
+  when: docker_registry_secret_exists.rc == 1
+  changed_when: false
+
+- name: Show debug output
+  ansible.builtin.debug:
+    msg: "{{ docker_registry_create_secret.stdout_lines }}"
+  when: docker_registry_secret_exists.rc == 1
+
+- name: Kubectl describe secret
+  ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
+  register: docker_registry_secrets
+  when: docker_registry_secret_exists.rc == 1
+  changed_when: false
+
+- name: Show debug output
+  ansible.builtin.debug:
+    msg: "{{ docker_registry_secrets.stdout_lines }}"
+  when: docker_registry_secret_exists.rc == 1

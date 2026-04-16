@@ -1,7 +1,6 @@
-
-- name: setup bashrc
-  copy:
+- name: Setup bashrc
+  ansible.builtin.copy:
     src: bashrc.txt
-    dest:  /home/pi/.bashrc
+    dest: /home/pi/.bashrc
     owner: pi
-
+    mode: "0644"

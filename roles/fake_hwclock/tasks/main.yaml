@@ -1,0 +1,16 @@
+- name: Check if fake-hwclock hourly cron exists
+  ansible.builtin.stat:
+    path: /etc/cron.hourly/fake-hwclock
+  register: fake_hwclock_cron
+
+- name: Disable fake-hwclock hourly SD card write
+  ansible.builtin.copy:
+    dest: /etc/cron.hourly/fake-hwclock
+    content: |
+      #!/bin/sh
+      # Disabled to reduce SD card wear.
+      # fake-hwclock still saves on shutdown via /etc/init.d/fake-hwclock.
+    owner: root
+    group: root
+    mode: '0755'
+  when: fake_hwclock_cron.stat.exists

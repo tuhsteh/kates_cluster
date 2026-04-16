@@ -1,0 +1,14 @@
+- name: Check if dhcpcd is installed
+  ansible.builtin.command: which dhcpcd
+  register: network_tmpfs_dhcpcd_which
+  failed_when: false
+  changed_when: false
+
+- name: Mount /var/lib/dhcp as tmpfs
+  ansible.posix.mount:
+    path: /var/lib/dhcp
+    src: tmpfs
+    fstype: tmpfs
+    opts: rw,noatime,nosuid,nodev,mode=0755,size=16m
+    state: mounted
+  when: network_tmpfs_dhcpcd_which.rc == 0
