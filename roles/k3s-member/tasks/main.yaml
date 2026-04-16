@@ -1,4 +1,33 @@
 ---
+- name: Create k3s data directory on SSD
+  ansible.builtin.file:
+    path: "{{ k3s_data_dir }}"
+    state: directory
+    mode: "0700"
+    owner: root
+    group: root
+  when: (ansible_mounts | selectattr('mount', 'equalto', '/mnt/ssd') | list | length) > 0
+
+- name: Ensure k3s-agent systemd drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/k3s-agent.service.d
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Add SSD mount dependency to k3s-agent service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/k3s-agent.service.d/override.conf
+    content: |
+      [Unit]
+      After=mnt-ssd.mount
+      Requires=mnt-ssd.mount
+    mode: "0644"
+    owner: root
+    group: root
+  notify: Reload systemd
+
 - name: ensure k3s config directory exists
   ansible.builtin.file:
     path: /etc/rancher/k3s
@@ -18,7 +47,7 @@
 
 - name: fetch node token from leader when not already in memory
   ansible.builtin.slurp:
-    src: /var/lib/rancher/k3s/server/token
+    src: "{{ k3s_data_dir }}/server/token"
   register: _k3s_token_raw
   delegate_to: "{{ groups['stage_leader'][0] }}"
   no_log: true

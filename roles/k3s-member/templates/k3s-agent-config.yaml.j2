@@ -1,7 +1,14 @@
 # Managed by Ansible — do not edit manually
 # k3s agent configuration for {{ inventory_hostname }}
 
+# --- Storage ---
+# Store all k3s data on the m.2 SSD to protect the SD card from write wear
+data-dir: "{{ k3s_data_dir }}"
+
 # --- kubelet arguments ---
+# WARNING: root-dir moves emptyDir volumes and pod sandbox storage to SSD.
+# Some CNI plugins hardcode /var/lib/kubelet — test CNI compatibility before relying on this.
 kubelet-arg:
   - "container-log-max-size=10Mi"
   - "container-log-max-files=3"
+  - "root-dir={{ k3s_data_dir }}/agent/kubelet"
