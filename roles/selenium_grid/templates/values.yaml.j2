@@ -5,13 +5,26 @@ global:
   seleniumGrid:
     imageRegistry: "{{ selenium_grid_registry }}"
     imageTag: "{{ selenium_grid_image_tag }}"
+    nodesImageTag: "{{ selenium_grid_image_tag }}"
 
 hub:
   serviceType: NodePort
   nodePort: {{ selenium_grid_hub_nodeport }}
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  basicAuth:
+    enabled: true
+    username: "{{ selenium_grid_basic_auth_username }}"
+    password: "{{ selenium_grid_basic_auth_password }}"
 
-chromiumNode:
+chromeNode:
   enabled: true
+  imageName: node-chromium
   replicas: 0
   maxSessions: {{ selenium_grid_node_max_sessions }}
   # REQUIRED: k8s pods default to 64MB /dev/shm — Chromium crashes without at least 1Gi
@@ -26,13 +39,10 @@ chromiumNode:
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: DoNotSchedule
+      whenUnsatisfiable: ScheduleAnyway
       labelSelector:
         matchLabels:
-          app.kubernetes.io/name: selenium-grid-chromium-node
-
-chromeNode:
-  enabled: false
+          app.kubernetes.io/name: selenium-grid-selenium-node-chrome
 
 firefoxNode:
   enabled: false
@@ -49,4 +59,4 @@ autoscaling:
   scaledOptions:
     minReplicaCount: 0
     maxReplicaCount: {{ selenium_grid_node_max_replicas }}
-    pollingInterval: 20
+    pollingInterval: 10

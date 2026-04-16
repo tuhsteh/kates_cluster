@@ -3,7 +3,7 @@
 selenium_grid_helm_version: "3.17.3"
 
 # Chart
-selenium_grid_chart_version: "0.27.0"
+selenium_grid_chart_version: "0.54.0"
 selenium_grid_namespace: selenium
 selenium_grid_helm_release: selenium-grid
 
@@ -27,3 +27,7 @@ selenium_grid_node_cpu_request: "500m"
 selenium_grid_node_memory_request: "768Mi"
 selenium_grid_node_cpu_limit: "1500m"
 selenium_grid_node_memory_limit: "1280Mi"
+
+# Grid UI BasicAuth — override via vault in production
+selenium_grid_basic_auth_username: "admin"
+selenium_grid_basic_auth_password: "admin"
