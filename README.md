@@ -25,8 +25,7 @@
   - Docker registry on the cluster (https://carpie.net/articles/installing-docker-registry-on-k3s)
   - Grafana
   - Prometheus
-  - Jenkins (https://jenkins-x.io/v3/admin/platforms/k3s/)
-  - Syslog-ng
-  - Elasticsearch
+  - GitHub Actions for external CI; Tekton or Argo Workflows if in-cluster pipelines are ever needed
+  - Grafana Loki + Promtail (centralized logging if/when needed; replaces Syslog-ng)
 
   
