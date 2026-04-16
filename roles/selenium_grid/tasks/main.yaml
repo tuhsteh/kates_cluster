@@ -1,0 +1,96 @@
+---
+- name: Create selenium namespace
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      kubectl create namespace {{ selenium_grid_namespace }} --dry-run=client -o yaml \
+        | kubectl apply -f - --kubeconfig /etc/rancher/k3s/k3s.yaml
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_grid_ns_result
+  changed_when: '"created" in selenium_grid_ns_result.stdout'
+
+- name: Check installed Helm version
+  ansible.builtin.command:
+    cmd: helm version --short
+  register: selenium_grid_helm_installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Download Helm tarball
+  ansible.builtin.get_url:
+    url: "https://get.helm.sh/helm-v{{ selenium_grid_helm_version }}-linux-arm64.tar.gz"
+    dest: "/tmp/helm-v{{ selenium_grid_helm_version }}-linux-arm64.tar.gz"
+    checksum: "sha256:https://get.helm.sh/helm-v{{ selenium_grid_helm_version }}-linux-arm64.tar.gz.sha256"
+    mode: "0644"
+  when: selenium_grid_helm_version not in (selenium_grid_helm_installed_version.stdout | default(''))
+
+- name: Extract Helm binary
+  ansible.builtin.unarchive:
+    src: "/tmp/helm-v{{ selenium_grid_helm_version }}-linux-arm64.tar.gz"
+    dest: /usr/local/bin
+    remote_src: true
+    include:
+      - linux-arm64/helm
+    extra_opts:
+      - "--strip-components=1"
+  when: selenium_grid_helm_version not in (selenium_grid_helm_installed_version.stdout | default(''))
+
+- name: Add docker-selenium Helm repo
+  ansible.builtin.command:
+    cmd: helm repo add docker-selenium https://www.selenium.dev/docker-selenium
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_grid_repo_add
+  changed_when: '"already exists" not in selenium_grid_repo_add.stdout'
+  failed_when: selenium_grid_repo_add.rc != 0 and "already exists" not in selenium_grid_repo_add.stdout
+
+- name: Update Helm repos
+  ansible.builtin.command:
+    cmd: helm repo update
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  changed_when: false
+
+- name: Template Selenium Grid values file
+  ansible.builtin.template:
+    src: values.yaml.j2
+    dest: /tmp/selenium-grid-values.yaml
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Deploy Selenium Grid via Helm
+  ansible.builtin.command:
+    cmd: >
+      helm upgrade --install {{ selenium_grid_helm_release }}
+      docker-selenium/selenium-grid
+      --namespace {{ selenium_grid_namespace }}
+      --create-namespace
+      --values /tmp/selenium-grid-values.yaml
+      --wait
+      --timeout 600s
+      --kubeconfig /etc/rancher/k3s/k3s.yaml
+      --version {{ selenium_grid_chart_version }}
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_grid_helm_deploy
+  changed_when: >
+    "has been installed" in selenium_grid_helm_deploy.stdout or
+    "has been upgraded" in selenium_grid_helm_deploy.stdout
+
+- name: Remove temporary Helm values file
+  ansible.builtin.file:
+    path: /tmp/selenium-grid-values.yaml
+    state: absent
+
+- name: Verify Selenium Hub is reachable
+  ansible.builtin.uri:
+    url: "http://{{ ansible_host }}:{{ selenium_grid_hub_nodeport }}/readyz"
+    status_code: 200
+  retries: 10
+  delay: 15
+  register: selenium_grid_readyz
+  until: selenium_grid_readyz.status == 200
+  changed_when: false

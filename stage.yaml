@@ -23,6 +23,7 @@
     - docker_registry
     - longhorn
     - prometheus
+    - selenium_grid
 
 - name: Configure stage members
   hosts: stage_members
