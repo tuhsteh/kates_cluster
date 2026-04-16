@@ -21,16 +21,16 @@
 
 ## Progress
 - [x] Created branch `feature/selenium-grid` and task folder
-- [ ] Research: ARM64 image support, Helm chart, resource requirements, scaling patterns ← IN PROGRESS
-- [ ] Confirm external access pattern with user
-- [ ] Architecture/design review
-- [ ] Implement role (coder)
+- [x] Research: ARM64 image support, Helm chart, resource requirements, scaling patterns
+- [x] Confirm external access pattern with user (NodePort 30444)
+- [x] Architecture/design review (all decisions locked — see Decisions section)
+- [x] Implement role (coder) — `roles/selenium_grid/` tasks, defaults, templates; stage.yaml; README.md
 - [ ] Review (reviewer)
-- [ ] ansible-lint verification
+- [x] ansible-lint verification — 0 failures, 0 warnings (`--profile production`)
 - [ ] Commit and push
 
 ## Open Questions / Blockers
-- **BLOCKED on docker_registry**: user wants local registry completed first so Selenium image pulls come from LAN rather than Docker Hub (critical for KEDA job cold-start latency). Resume this task after `feature/docker-registry` is merged.
+- (none blocking) docker_registry role was already complete in PR #8; local registry at `kate0.local:30500`. Selenium role should use this as the image registry.
 - **Persistence**: no PVC needed — grid is stateless (KEDA job pods terminate per session).
 
 ## Constraints

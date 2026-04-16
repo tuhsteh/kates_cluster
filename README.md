@@ -27,5 +27,6 @@
   - Prometheus
   - GitHub Actions for external CI; Tekton or Argo Workflows if in-cluster pipelines are ever needed
   - Grafana Loki + Promtail (centralized logging if/when needed; replaces Syslog-ng)
+  - Selenium Grid (KEDA job-based autoscaling, Chromium on ARM64, local registry)
 
   

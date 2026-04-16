@@ -1,0 +1,52 @@
+# Managed by Ansible — do not edit manually
+# Selenium Grid 4 Helm values for k3s on ARM64 Raspberry Pi 4B
+
+global:
+  seleniumGrid:
+    imageRegistry: "{{ selenium_grid_registry }}"
+    imageTag: "{{ selenium_grid_image_tag }}"
+
+hub:
+  serviceType: NodePort
+  nodePort: {{ selenium_grid_hub_nodeport }}
+
+chromiumNode:
+  enabled: true
+  replicas: 0
+  maxSessions: {{ selenium_grid_node_max_sessions }}
+  # REQUIRED: k8s pods default to 64MB /dev/shm — Chromium crashes without at least 1Gi
+  dshmVolumeSizeLimit: "{{ selenium_grid_node_shm_size }}"
+  resources:
+    requests:
+      cpu: "{{ selenium_grid_node_cpu_request }}"
+      memory: "{{ selenium_grid_node_memory_request }}"
+    limits:
+      cpu: "{{ selenium_grid_node_cpu_limit }}"
+      memory: "{{ selenium_grid_node_memory_limit }}"
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: selenium-grid-chromium-node
+
+chromeNode:
+  enabled: false
+
+firefoxNode:
+  enabled: false
+
+edgeNode:
+  enabled: false
+
+videoRecorder:
+  enabled: false
+
+autoscaling:
+  enabled: true
+  scalingType: job
+  scaledOptions:
+    minReplicaCount: 0
+    maxReplicaCount: {{ selenium_grid_node_max_replicas }}
+    pollingInterval: 20

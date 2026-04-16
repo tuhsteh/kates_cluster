@@ -1,0 +1,29 @@
+---
+# Helm binary — must match the version installed by the prometheus role
+selenium_grid_helm_version: "3.17.3"
+
+# Chart
+selenium_grid_chart_version: "0.27.0"
+selenium_grid_namespace: selenium
+selenium_grid_helm_release: selenium-grid
+
+# Registry
+selenium_grid_registry: "kate0.local:30500"
+selenium_grid_image_tag: "4.43.0-20260404"
+
+# Hub exposure
+selenium_grid_hub_nodeport: 30444
+
+# Node scaling
+selenium_grid_node_max_sessions: 1
+selenium_grid_node_max_replicas: 24
+
+# /dev/shm — REQUIRED: default k8s pods only get 64MB; Chromium needs ~1GB
+selenium_grid_node_shm_size: 1Gi
+
+# Per-pod resource allocation (chromiumNode)
+# SECURITY: Override via group_vars or host_vars if node resource budget changes.
+selenium_grid_node_cpu_request: "500m"
+selenium_grid_node_memory_request: "768Mi"
+selenium_grid_node_cpu_limit: "1500m"
+selenium_grid_node_memory_limit: "1280Mi"
