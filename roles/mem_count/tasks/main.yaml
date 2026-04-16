@@ -1,6 +1,6 @@
 
 - name: Mem
-  ansible.builtin.shell:  free -m
+  ansible.builtin.command: free -m
   register: mem_count_memcount
 
 - name: Show debug output

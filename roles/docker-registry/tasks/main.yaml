@@ -35,12 +35,12 @@
     mode: 0640
 
 - name: Check if secret exists
-  ansible.builtin.shell:  kubectl describe secret docker-registry-htpasswd
+  ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
   register: secret_exists
   ignore_errors: yes
 
 - name: Kubectl create secret
-  ansible.builtin.shell:  kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
+  ansible.builtin.command: kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
   register:  create_secret
   when:  secret_exists.rc == 1
 
@@ -50,7 +50,7 @@
   when:  secret_exists.rc == 1
 
 - name: Kubectl describe secret
-  ansible.builtin.shell:  kubectl describe secret docker-registry-htpasswd
+  ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
   register: secrets
   when:  secret_exists.rc == 1
 

@@ -1,5 +1,5 @@
 
  - name: Disable wifi
-   ansible.builtin.shell:  ifconfig wlan0 down
+   ansible.builtin.command: ifconfig wlan0 down
 
    

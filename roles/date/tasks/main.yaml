@@ -1,6 +1,6 @@
 
 - name: Date
-  ansible.builtin.shell:  date
+  ansible.builtin.command: date
   register: date_datetime
 
 - name: Show debug output
