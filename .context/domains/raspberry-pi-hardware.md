@@ -339,3 +339,63 @@ kube-state-metrics:         # NOT kubeStateMetrics:
 Values files templated to `/tmp` may contain plaintext secrets (e.g., Grafana admin password). Always:
 - Set `mode: "0600"` on the template task
 - Add a cleanup task (`ansible.builtin.file: state: absent`) immediately after the Helm deploy task
+
+---
+
+## docker-selenium/selenium-grid on ARM64 k3s
+
+### ARM64 Browser Node — Critical
+`selenium/node-chrome` has **no ARM64 Linux binary**. The only ARM64-compatible image is `selenium/node-chromium`. The legacy `seleniarm/*` namespace is deprecated (abandoned since 4.21.0, May 2024).
+
+The Helm chart has **no `chromiumNode` key**. The browser node type is always `chromeNode`; the image is overridden via `imageName`:
+```yaml
+chromeNode:
+  enabled: true
+  imageName: node-chromium    # ← this is what makes it ARM64 Chromium
+```
+Helm silently ignores unknown keys — `chromiumNode: enabled: true` deploys zero browser nodes with no error.
+
+### Chart Version / Image Tag Coupling
+Chart version and image tag must come from the same release. Cross-check via the chart's `CHANGELOG.md` or `Chart.yaml` `appVersion`:
+
+| Chart | Image tag |
+|-------|-----------|
+| 0.27.0 | 4.17.0-20240123 |
+| 0.54.0 | 4.43.0-20260404 |
+
+Mismatching causes hub/node protocol incompatibility — hub starts, nodes register, but sessions fail silently.
+
+### /dev/shm — Non-Optional
+k8s pods default to 64 MB `/dev/shm`. Chromium requires ~1 GB or silently crashes mid-session. Always set:
+```yaml
+chromeNode:
+  dshmVolumeSizeLimit: "1Gi"
+```
+
+### Post-Deploy Health Check
+Never use `kubectl rollout status deployment/<release>-hub` — chart naming helpers produce different names across versions. Use the HTTP readiness endpoint instead:
+```yaml
+- name: Verify Selenium Hub is reachable
+  ansible.builtin.uri:
+    url: "http://{{ ansible_host }}:{{ selenium_grid_hub_nodeport }}/readyz"
+    status_code: 200
+  retries: 10
+  delay: 15
+  until: result.status == 200
+  changed_when: false
+```
+
+### KEDA Job-Based Scaling
+`scalingType: job` means one pod per test session; pod terminates after the session ends; cluster scales to zero at rest. This matches the docker-compose Dynamic Grid behaviour (`selenium/node-docker` with Docker socket).
+
+### `nodesImageTag` — Set Explicitly
+`global.seleniumGrid.imageTag` overrides the hub image only. Browser nodes use `global.seleniumGrid.nodesImageTag`. Always set both to the same tag to prevent silent version mismatch:
+```yaml
+global:
+  seleniumGrid:
+    imageTag: "{{ selenium_grid_image_tag }}"
+    nodesImageTag: "{{ selenium_grid_image_tag }}"
+```
+
+### Helm Timeout
+KEDA controller + hub startup on ARM64 Pis pulling from a local registry can take 3-5 minutes. Use `--timeout 600s` on `helm upgrade --install`.
