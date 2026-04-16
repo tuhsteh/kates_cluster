@@ -31,7 +31,7 @@
     name: registry
     password: '1qazxsw2'
     path: /home/pi/htpasswd
-    mode: 0640
+    mode: "0640"
 
 - name: Check if secret exists
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
