@@ -5,7 +5,7 @@
   changed_when: false
 
 - name: mount /var/lib/dhcp as tmpfs
-  mount:
+  ansible.posix.mount:
     path: /var/lib/dhcp
     src: tmpfs
     fstype: tmpfs

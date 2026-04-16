@@ -7,7 +7,7 @@
   notify: reboot
 
 - name: mount /tmp as tmpfs
-  mount:
+  ansible.posix.mount:
     path: /tmp
     src: tmpfs
     fstype: tmpfs
@@ -15,7 +15,7 @@
     state: mounted
 
 - name: mount /var/tmp as tmpfs
-  mount:
+  ansible.posix.mount:
     path: /var/tmp
     src: tmpfs
     fstype: tmpfs

@@ -1,6 +1,6 @@
 
 - name: mount /var/log as tmpfs ramdisk
-  mount:
+  ansible.posix.mount:
     path: /var/log
     src: tmpfs
     fstype: tmpfs
