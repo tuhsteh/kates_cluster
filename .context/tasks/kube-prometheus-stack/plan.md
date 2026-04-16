@@ -31,11 +31,11 @@
 - [x] Implement `prometheus` role — defaults (all prometheus_-prefixed vars), tasks (8 tasks: namespace, helm binary, repo, values template, deploy, wait), values.yaml.j2 (all k3s overrides), stage.yaml updated
 - [x] ansible-lint verification — 0 failures, 0 warnings; production profile
 - [x] Code review — 4 moderate findings, 3 informational; 0 critical
-- [ ] Apply review fixes ← IN PROGRESS
+- [x] Apply review fixes
 - [ ] Code review
-- [ ] Apply review fixes
-- [ ] Commit and open PR
-- [ ] Task retrospective
+- [x] Apply review fixes
+- [x] Commit and open PR
+- [x] Task retrospective
 
 ## Open Questions / Blockers
 - None — all design decisions confirmed. Proceeding to implementation.
