@@ -31,3 +31,19 @@ selenium_grid_node_memory_limit: "1280Mi"
 # Grid UI BasicAuth — override via vault in production
 selenium_grid_basic_auth_username: "admin"
 selenium_grid_basic_auth_password: "admin"
+
+# Video recording — requires selenium-storage PVC (created by selenium_media role)
+# Pre-push to local registry before first playbook run:
+#   docker pull --platform linux/arm64 selenium/video:ffmpeg-8.1-20260404
+#   docker tag  selenium/video:ffmpeg-8.1-20260404 kate0.local:30500/selenium/video:ffmpeg-8.1-20260404
+#   docker push kate0.local:30500/selenium/video:ffmpeg-8.1-20260404
+selenium_grid_video_enabled: true
+selenium_grid_video_image_tag: "ffmpeg-8.1-20260404"
+selenium_grid_video_frame_rate: "10"
+selenium_grid_video_width: "1280"
+selenium_grid_video_height: "720"
+selenium_grid_storage_pvc_name: "selenium-storage"
+
+# Built-in read-only video browser (chart-managed filebrowser at /recordings)
+selenium_grid_video_manager_enabled: true
+selenium_grid_video_manager_nodeport: 30080

@@ -1,0 +1,115 @@
+---
+- name: Wait for Longhorn StorageClass to be available
+  ansible.builtin.command:
+    cmd: kubectl get storageclass longhorn
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_media_longhorn_sc
+  retries: 12
+  delay: 10
+  until: selenium_media_longhorn_sc.rc == 0
+  changed_when: false
+
+- name: Create selenium namespace
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      kubectl create namespace {{ selenium_media_namespace }} --dry-run=client -o yaml \
+        | kubectl apply -f -
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_media_ns_result
+  changed_when: '"created" in selenium_media_ns_result.stdout'
+
+- name: Template Longhorn RWX StorageClass manifest
+  ansible.builtin.template:
+    src: storageclass-rwx.yaml.j2
+    dest: /tmp/selenium-media-storageclass.yaml
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Apply Longhorn RWX StorageClass
+  ansible.builtin.command:
+    cmd: kubectl apply -f /tmp/selenium-media-storageclass.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_media_sc_apply
+  changed_when: >
+    "created" in selenium_media_sc_apply.stdout or
+    "configured" in selenium_media_sc_apply.stdout
+
+- name: Template selenium-storage PVC manifest
+  ansible.builtin.template:
+    src: pvc.yaml.j2
+    dest: /tmp/selenium-media-pvc.yaml
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Apply selenium-storage PVC
+  ansible.builtin.command:
+    cmd: kubectl apply -f /tmp/selenium-media-pvc.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_media_pvc_apply
+  changed_when: >
+    "created" in selenium_media_pvc_apply.stdout or
+    "configured" in selenium_media_pvc_apply.stdout
+
+- name: Template FileBrowser Quantum Deployment manifest
+  ansible.builtin.template:
+    src: deployment.yaml.j2
+    dest: /tmp/selenium-media-deployment.yaml
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Apply FileBrowser Quantum Deployment
+  ansible.builtin.command:
+    cmd: kubectl apply -f /tmp/selenium-media-deployment.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_media_deploy_apply
+  changed_when: >
+    "created" in selenium_media_deploy_apply.stdout or
+    "configured" in selenium_media_deploy_apply.stdout
+
+- name: Template FileBrowser Quantum Service manifest
+  ansible.builtin.template:
+    src: service.yaml.j2
+    dest: /tmp/selenium-media-service.yaml
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Apply FileBrowser Quantum Service
+  ansible.builtin.command:
+    cmd: kubectl apply -f /tmp/selenium-media-service.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: selenium_media_svc_apply
+  changed_when: >
+    "created" in selenium_media_svc_apply.stdout or
+    "configured" in selenium_media_svc_apply.stdout
+
+- name: Wait for FileBrowser Quantum rollout
+  ansible.builtin.command:
+    cmd: >
+      kubectl rollout status deployment/selenium-media-filebrowser
+      -n {{ selenium_media_namespace }}
+      --timeout=120s
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  changed_when: false
+
+- name: Remove temporary manifests
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/selenium-media-storageclass.yaml
+    - /tmp/selenium-media-pvc.yaml
+    - /tmp/selenium-media-deployment.yaml
+    - /tmp/selenium-media-service.yaml

@@ -23,6 +23,7 @@
     - docker_registry
     - longhorn
     - prometheus
+    - selenium_media
     - selenium_grid
 
 - name: Configure stage members

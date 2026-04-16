@@ -1,0 +1,15 @@
+---
+selenium_media_namespace: "selenium"
+
+# Longhorn RWX StorageClass and shared PVC for screenshots + videos
+selenium_media_storageclass_name: "longhorn-rwx"
+selenium_media_pvc_name: "selenium-storage"
+selenium_media_pvc_size: "20Gi"
+
+# FileBrowser Quantum — ARM64 multi-arch WebDAV-enabled fork of filebrowser
+# Pre-push to local registry before first playbook run:
+#   docker pull ghcr.io/gtsteffaniak/filebrowser:stable
+#   docker tag  ghcr.io/gtsteffaniak/filebrowser:stable kate0.local:30500/gtsteffaniak/filebrowser:stable
+#   docker push kate0.local:30500/gtsteffaniak/filebrowser:stable
+selenium_media_filebrowser_image: "kate0.local:30500/gtsteffaniak/filebrowser:stable"
+selenium_media_filebrowser_nodeport: 30081
