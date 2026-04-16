@@ -1,0 +1,13 @@
+# Managed by Ansible — do not edit manually
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ docker_registry_pvc_name }}
+  namespace: {{ docker_registry_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ docker_registry_storage_class }}
+  resources:
+    requests:
+      storage: {{ docker_registry_storage_size }}

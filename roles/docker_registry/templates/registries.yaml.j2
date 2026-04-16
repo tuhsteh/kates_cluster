@@ -1,0 +1,10 @@
+# Managed by Ansible — do not edit manually
+mirrors:
+  "{{ docker_registry_hostname }}:{{ docker_registry_nodeport }}":
+    endpoint:
+      - "http://{{ docker_registry_hostname }}:{{ docker_registry_nodeport }}"
+configs:
+  "{{ docker_registry_hostname }}:{{ docker_registry_nodeport }}":
+    auth:
+      username: {{ docker_registry_htpasswd_username }}
+      password: {{ docker_registry_htpasswd_password }}

@@ -1,0 +1,14 @@
+# Managed by Ansible — do not edit manually
+apiVersion: v1
+kind: Service
+metadata:
+  name: docker-registry
+  namespace: {{ docker_registry_namespace }}
+spec:
+  type: NodePort
+  selector:
+    app: docker-registry
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: {{ docker_registry_nodeport }}

@@ -1,0 +1,11 @@
+---
+docker_registry_image: registry:2
+docker_registry_namespace: default
+docker_registry_pvc_name: docker-registry-pvc
+docker_registry_storage_size: 20Gi
+docker_registry_storage_class: longhorn
+docker_registry_secret_name: docker-registry-htpasswd
+docker_registry_nodeport: 30500
+docker_registry_hostname: kate0.local
+docker_registry_htpasswd_username: registry
+docker_registry_htpasswd_password: '1qazxsw2'

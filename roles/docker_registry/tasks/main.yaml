@@ -7,22 +7,9 @@
     name: apache2-utils
     state: present
 
-- name: Remove useless packages from the cache
+- name: Install python3-passlib
   ansible.builtin.apt:
-    autoclean: true
-
-- name: Remove dependencies that are no longer required
-  ansible.builtin.apt:
-    autoremove: true
-
-- name: Install pip
-  ansible.builtin.apt:
-    name: python3-pip
-    state: present
-
-- name: Install python passlib
-  ansible.builtin.pip:
-    name: passlib
+    name: python3-passlib
     state: present
 
 - name: Add htpasswd
@@ -42,21 +29,77 @@
 - name: Kubectl create secret
   ansible.builtin.command: kubectl create secret generic docker-registry-htpasswd --from-file /home/pi/htpasswd
   register: docker_registry_create_secret
-  when: docker_registry_secret_exists.rc == 1
+  when: docker_registry_secret_exists.rc != 0
   changed_when: false
 
 - name: Show debug output
   ansible.builtin.debug:
     msg: "{{ docker_registry_create_secret.stdout_lines }}"
-  when: docker_registry_secret_exists.rc == 1
+  when: docker_registry_secret_exists.rc != 0
 
 - name: Kubectl describe secret
   ansible.builtin.command: kubectl describe secret docker-registry-htpasswd
   register: docker_registry_secrets
-  when: docker_registry_secret_exists.rc == 1
+  when: docker_registry_secret_exists.rc != 0
   changed_when: false
 
 - name: Show debug output
   ansible.builtin.debug:
     msg: "{{ docker_registry_secrets.stdout_lines }}"
-  when: docker_registry_secret_exists.rc == 1
+  when: docker_registry_secret_exists.rc != 0
+
+- name: Wait for Longhorn StorageClass
+  ansible.builtin.command: kubectl get storageclass longhorn
+  register: docker_registry_sc_check
+  retries: 12
+  delay: 10
+  until: docker_registry_sc_check.rc == 0
+  changed_when: false
+
+- name: Write PVC manifest
+  ansible.builtin.template:
+    src: pvc.yaml.j2
+    dest: /tmp/docker-registry-pvc.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Apply PVC
+  ansible.builtin.command: kubectl apply -f /tmp/docker-registry-pvc.yaml
+  register: docker_registry_pvc_apply_out
+  changed_when: '"configured" in docker_registry_pvc_apply_out.stdout or "created" in docker_registry_pvc_apply_out.stdout'
+
+- name: Write Deployment manifest
+  ansible.builtin.template:
+    src: deployment.yaml.j2
+    dest: /tmp/docker-registry-deployment.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Apply Deployment
+  ansible.builtin.command: kubectl apply -f /tmp/docker-registry-deployment.yaml
+  register: docker_registry_deploy_apply_out
+  changed_when: '"configured" in docker_registry_deploy_apply_out.stdout or "created" in docker_registry_deploy_apply_out.stdout'
+
+- name: Write Service manifest
+  ansible.builtin.template:
+    src: service.yaml.j2
+    dest: /tmp/docker-registry-service.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Apply Service
+  ansible.builtin.command: kubectl apply -f /tmp/docker-registry-service.yaml
+  register: docker_registry_svc_apply_out
+  changed_when: '"configured" in docker_registry_svc_apply_out.stdout or "created" in docker_registry_svc_apply_out.stdout'
+
+- name: Write registries.yaml on leader
+  ansible.builtin.template:
+    src: registries.yaml.j2
+    dest: /etc/rancher/k3s/registries.yaml
+    owner: root
+    group: root
+    mode: '0600'
+  notify: Restart k3s

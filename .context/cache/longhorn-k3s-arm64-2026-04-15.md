@@ -1,6 +1,6 @@
 # Longhorn on k3s / ARM64 — Research Cache
 
-**Cache Date:** 2025-04-15
+**Cache Date:** 2026-04-15
 **Source versions researched:** Longhorn v1.11.1 (latest stable as of April 2026)
 **Primary sources:** https://longhorn.io/docs/1.11.1/, https://github.com/longhorn/longhorn/releases
 

@@ -1,0 +1,10 @@
+# Managed by Ansible — do not edit manually
+mirrors:
+  "{{ k3s_member_registry_hostname }}:{{ k3s_member_registry_nodeport }}":
+    endpoint:
+      - "http://{{ k3s_member_registry_hostname }}:{{ k3s_member_registry_nodeport }}"
+configs:
+  "{{ k3s_member_registry_hostname }}:{{ k3s_member_registry_nodeport }}":
+    auth:
+      username: {{ k3s_member_registry_username }}
+      password: {{ k3s_member_registry_password }}
