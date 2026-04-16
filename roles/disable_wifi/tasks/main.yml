@@ -1,3 +1,3 @@
- - name: Disable wifi
-   ansible.builtin.command: ifconfig wlan0 down
-   changed_when: false
+- name: Disable wifi
+  ansible.builtin.command: ifconfig wlan0 down
+  changed_when: false
