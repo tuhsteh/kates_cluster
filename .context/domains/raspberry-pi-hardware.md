@@ -266,3 +266,76 @@ k3s_leader_data_dir: /mnt/ssd/k3s   # duplicates k3s_leader's default — will d
 ```
 
 The `# Depends on:` comment serves as self-documentation so future maintainers understand why the variable is used but not defined in the role's own defaults.
+
+## Helm on k3s (ARM64)
+
+### Shell-Based Helm Deployment
+When `kubernetes.core` is not in `collections/requirements.yml`, deploy via `ansible.builtin.command` with `helm` installed as an ARM64 binary on the leader node. Always pass `--kubeconfig /etc/rancher/k3s/k3s.yaml` (absolute path — independent of `k3s_leader_data_dir`).
+
+### Version-Pinned Binary Install Pattern
+Do NOT use `creates: /usr/local/bin/helm` — it permanently blocks re-running when the version variable changes. Use a version-check `when` guard instead:
+
+```yaml
+- name: Check installed Helm version
+  ansible.builtin.command: helm version --short
+  register: <role_prefix>_helm_installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Download Helm tarball
+  ansible.builtin.get_url:
+    url: "https://get.helm.sh/helm-v{{ <role_prefix>_helm_version }}-linux-arm64.tar.gz"
+    ...
+  when: <role_prefix>_helm_version not in (<role_prefix>_helm_installed_version.stdout | default(''))
+```
+
+The `failed_when: false` on the version-check is required — if Helm is not yet installed, the command will fail and must not abort the play.
+
+### Helm ansible.builtin.command Output Streams
+`helm repo add` writes its idempotency message to **stdout**, not stderr:
+- Already exists: `"<name>" already exists with the same configuration, skipping` → **stdout**
+- First add: exit 0, stdout contains repo name → **stdout**
+
+```yaml
+changed_when: '"already exists" not in prometheus_repo_add.stdout'   # stdout ✓
+failed_when: prometheus_repo_add.rc != 0 and "already exists" not in prometheus_repo_add.stdout
+```
+
+### Correct changed_when Strings for helm upgrade --install
+`"has been deployed"` does **not exist** in Helm 3 output. The real strings are:
+- First install: `"has been installed"`
+- Subsequent runs: `"has been upgraded"`
+
+```yaml
+changed_when: >
+  "has been installed" in prometheus_helm_deploy.stdout or
+  "has been upgraded" in prometheus_helm_deploy.stdout
+```
+
+### kube-prometheus-stack k3s Required Overrides (v83+)
+These are **silent failures** — the chart installs but produces errors, blank panels, or false alerts without them:
+
+| Override | Reason |
+|----------|--------|
+| `kubeApiServer.enabled: false` | Embedded in k3s process; ServiceMonitor never matches |
+| `kubeControllerManager.enabled: false` | Same — embedded |
+| `kubeScheduler.enabled: false` | Same — embedded |
+| `kubeProxy.enabled: false` | Absent — k3s uses Flannel/kube-proxy replacement |
+| `kubeEtcd.enabled: false` | Absent — k3s uses SQLite |
+| `prometheusOperator.admissionWebhooks.enabled: false` | Times out silently on ARM64 |
+| `defaultRules.create: false` | Rules assume kubeadm; produces false alerts on k3s |
+| `grafana.defaultDashboardsEnabled: false` | Blank panels on k3s (kubeadm-targeted queries) |
+| `prometheusSpec.serviceMonitorSelectorNilUsesHelmValues: false` | Required for Longhorn/app ServiceMonitors to be scraped |
+
+**Sub-chart key names are hyphenated** (not camelCase):
+```yaml
+prometheus-node-exporter:   # NOT nodeExporter:
+  ...
+kube-state-metrics:         # NOT kubeStateMetrics:
+  ...
+```
+
+### Temp Values File Security
+Values files templated to `/tmp` may contain plaintext secrets (e.g., Grafana admin password). Always:
+- Set `mode: "0600"` on the template task
+- Add a cleanup task (`ansible.builtin.file: state: absent`) immediately after the Helm deploy task
