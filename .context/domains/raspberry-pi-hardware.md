@@ -420,4 +420,68 @@ docker push kate0.local:30500/selenium/hub:4.43.0-20260404
 docker push kate0.local:30500/selenium/node-chromium:4.43.0-20260404
 ```
 
+#### Additional pre-push: video recording + FileBrowser Quantum (selenium_media role)
+
+```bash
+# Selenium video recorder — ARM64 multi-arch (separate tag from hub/node)
+docker pull --platform linux/arm64 selenium/video:ffmpeg-8.1-20260404
+docker tag  selenium/video:ffmpeg-8.1-20260404 kate0.local:30500/selenium/video:ffmpeg-8.1-20260404
+docker push kate0.local:30500/selenium/video:ffmpeg-8.1-20260404
+
+# FileBrowser Quantum — ARM64 multi-arch WebDAV-enabled file browser
+docker pull ghcr.io/gtsteffaniak/filebrowser:stable
+docker tag  ghcr.io/gtsteffaniak/filebrowser:stable kate0.local:30500/gtsteffaniak/filebrowser:stable
+docker push kate0.local:30500/gtsteffaniak/filebrowser:stable
+```
+
 KEDA images pull from `ghcr.io` directly (not mirrored) — Pi nodes need outbound internet access for those, but that is already confirmed working via Prometheus/Grafana deploys.
+
+---
+
+### Selenium Media — Screenshot + Video Storage (selenium_media role)
+
+The `selenium_media` role creates a Longhorn **ReadWriteMany** PVC (`selenium-storage`, 20 Gi) and deploys FileBrowser Quantum as a WebDAV server. This shared PVC is also mounted by the Selenium Grid `videoRecorder` sidecar.
+
+#### NodePort summary
+
+| Service | NodePort | URL |
+|---------|----------|-----|
+| Selenium Grid Hub | 30444 | `http://kate0.local:30444/ui` |
+| FileBrowser Quantum (WebDAV + browse) | 30081 | `http://kate0.local:30081/` |
+| videoManager (read-only video browse) | 30080 | `http://kate0.local:30080/` |
+
+#### PVC directory layout
+
+```
+selenium-storage (20 Gi, RWX)
+├── screenshots/   ← TestNG writes here via WebDAV mount on laptop
+└── videos/        ← videoRecorder sidecar writes one .mp4 per session
+```
+
+#### Mount WebDAV on macOS (no admin required)
+
+```bash
+# One-time (survives until reboot)
+mkdir -p ~/mnt/selenium-media
+mount_webdav http://kate0.local:30081/dav/ ~/mnt/selenium-media
+
+# Create directories on first mount
+mkdir -p ~/mnt/selenium-media/screenshots ~/mnt/selenium-media/videos
+
+# Point TestNG at the mounted share
+export WEBDRIVER_SCREENSHOT_DIRECTORY=~/mnt/selenium-media/screenshots
+```
+
+To auto-reconnect after reboots: add the mounted volume to **System Settings → General → Login Items** (drag the mounted Finder volume icon there).
+
+#### Video recording settings (Pi 4B optimised)
+
+The `videoRecorder` runs FFmpeg in software-only mode (Pi 4B has no GPU). Values are tuned to avoid saturating a Pi core:
+
+| Setting | Value | Reason |
+|---------|-------|--------|
+| `SE_FRAME_RATE` | 10 | Default 30 FPS saturates one Pi core |
+| `SE_SCREEN_WIDTH` | 1280 | Lower encode load vs 1920 |
+| `SE_SCREEN_HEIGHT` | 720 | Same |
+
+To disable video recording: set `selenium_grid_video_enabled: false` in group_vars.

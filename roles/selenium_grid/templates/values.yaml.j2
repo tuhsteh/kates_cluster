@@ -6,6 +6,8 @@ global:
     imageRegistry: "{{ selenium_grid_registry }}"
     imageTag: "{{ selenium_grid_image_tag }}"
     nodesImageTag: "{{ selenium_grid_image_tag }}"
+    # videoImageTag is separate from imageTag — ffmpeg-tagged image is ARM64 multi-arch
+    videoImageTag: "{{ selenium_grid_video_image_tag }}"
 
 hub:
   serviceType: NodePort
@@ -51,7 +53,43 @@ edgeNode:
   enabled: false
 
 videoRecorder:
-  enabled: false
+  enabled: "{{ 'true' if selenium_grid_video_enabled else 'false' }}"
+  targetFolder: "/videos"
+  # Reduce FFmpeg load on Pi 4B — software-only encode, no GPU
+  extraEnvironmentVariables:
+    - name: SE_FRAME_RATE
+      value: "{{ selenium_grid_video_frame_rate }}"
+    - name: SE_SCREEN_WIDTH
+      value: "{{ selenium_grid_video_width }}"
+    - name: SE_SCREEN_HEIGHT
+      value: "{{ selenium_grid_video_height }}"
+  extraVolumes:
+    - name: selenium-storage
+      persistentVolumeClaim:
+        claimName: {{ selenium_grid_storage_pvc_name }}
+  extraVolumeMounts:
+    - name: selenium-storage
+      mountPath: /videos
+      subPath: videos
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+videoManager:
+  enabled: "{{ 'true' if selenium_grid_video_manager_enabled else 'false' }}"
+  serviceType: NodePort
+  nodePort: {{ selenium_grid_video_manager_nodeport }}
+  extraVolumes:
+    - name: selenium-storage
+      persistentVolumeClaim:
+        claimName: {{ selenium_grid_storage_pvc_name }}
+  extraVolumeMounts:
+    - name: selenium-storage
+      mountPath: /srv
 
 autoscaling:
   enabled: true

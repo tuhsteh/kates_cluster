@@ -1,0 +1,13 @@
+# Managed by Ansible — do not edit manually
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ selenium_media_pvc_name }}
+  namespace: {{ selenium_media_namespace }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ selenium_media_storageclass_name }}
+  resources:
+    requests:
+      storage: {{ selenium_media_pvc_size }}
