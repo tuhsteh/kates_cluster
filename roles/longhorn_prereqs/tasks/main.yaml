@@ -1,0 +1,58 @@
+---
+- name: Install Longhorn prerequisite packages
+  ansible.builtin.apt:
+    name:
+      - open-iscsi
+      - nfs-common
+      - cryptsetup
+      - dmsetup
+    state: present
+    update_cache: false
+
+- name: Persist kernel modules for Longhorn at boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/longhorn.conf
+    content: |
+      iscsi_tcp
+      dm_crypt
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Load iscsi_tcp kernel module
+  ansible.builtin.command: modprobe iscsi_tcp
+  changed_when: false
+
+- name: Load dm_crypt kernel module
+  ansible.builtin.command: modprobe dm_crypt
+  changed_when: false
+
+# Bookworm uses socket activation for iscsid — enabling iscsid.socket (not
+# iscsid.service) is the correct unit; the service starts on-demand when
+# the socket receives a connection.
+- name: Enable and start iscsid.socket (Bookworm socket-activated iSCSI daemon)
+  ansible.builtin.service:
+    name: iscsid.socket
+    state: started
+    enabled: true
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Disable and stop multipathd (prevents it from claiming Longhorn block devices)
+  ansible.builtin.service:
+    name: multipathd
+    state: stopped
+    enabled: false
+  when:
+    - "'multipathd.service' in ansible_facts.services"
+    - "ansible_facts.services['multipathd.service'].status == 'enabled'"
+
+- name: Create Longhorn data directory on SSD
+  ansible.builtin.file:
+    path: "{{ longhorn_prereqs_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  when: (ansible_mounts | selectattr('mount', 'equalto', '/mnt/ssd') | list | length) > 0

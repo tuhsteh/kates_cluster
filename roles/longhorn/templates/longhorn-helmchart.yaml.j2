@@ -1,0 +1,25 @@
+# Managed by Ansible — do not edit manually
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  annotations:
+    helmcharts.cattle.io/managed-by: helm-controller
+  finalizers:
+    - wrangler.cattle.io/on-helm-chart-remove
+  name: longhorn
+  namespace: kube-system
+spec:
+  version: "{{ longhorn_version }}"
+  chart: longhorn
+  repo: https://charts.longhorn.io
+  failurePolicy: abort
+  targetNamespace: longhorn-system
+  createNamespace: true
+  valuesContent: |-
+    defaultSettings:
+      defaultDataPath: "{{ longhorn_data_dir }}"
+      defaultReplicaCount: {{ longhorn_replica_count }}
+      replicaSoftAntiAffinity: true
+      replicaAutoBalance: least-effort
+    persistence:
+      defaultClassReplicaCount: {{ longhorn_replica_count }}

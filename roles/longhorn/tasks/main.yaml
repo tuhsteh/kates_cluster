@@ -1,0 +1,17 @@
+---
+# Depends on: k3s_leader role must run in the same play — provides k3s_leader_data_dir
+- name: Ensure k3s manifests directory exists
+  ansible.builtin.file:
+    path: "{{ k3s_leader_data_dir }}/server/manifests"
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Write Longhorn HelmChart manifest
+  ansible.builtin.template:
+    src: longhorn-helmchart.yaml.j2
+    dest: "{{ k3s_leader_data_dir }}/server/manifests/longhorn.yaml"
+    owner: root
+    group: root
+    mode: '0644'
