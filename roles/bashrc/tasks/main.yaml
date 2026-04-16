@@ -3,3 +3,4 @@
     src: bashrc.txt
     dest: /home/pi/.bashrc
     owner: pi
+    mode: "0644"
