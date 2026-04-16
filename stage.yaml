@@ -21,8 +21,6 @@
     - k3s-leader
     - docker-registry
 
-
-
 - hosts: stage_members
   name: Configure stage members
   become: true

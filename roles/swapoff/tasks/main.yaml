@@ -1,4 +1,3 @@
-
 - name: Swapoff
   ansible.builtin.command: swapoff -a
   changed_when: false
@@ -13,4 +12,3 @@
   ansible.builtin.file:
     path: /var/swap
     state: absent
-

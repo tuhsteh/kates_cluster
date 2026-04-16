@@ -1,4 +1,3 @@
-
 - name: Mem
   ansible.builtin.command: free -m
   register: mem_count_memcount
@@ -7,4 +6,3 @@
 - name: Show debug output
   ansible.builtin.debug:
     msg: "{{ mem_count_memcount.stdout_lines }}"
-

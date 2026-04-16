@@ -1,7 +1,5 @@
-
 - name: Setup bashrc
   ansible.builtin.copy:
     src: bashrc.txt
     dest:  /home/pi/.bashrc
     owner: pi
-
