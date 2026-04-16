@@ -399,3 +399,25 @@ global:
 
 ### Helm Timeout
 KEDA controller + hub startup on ARM64 Pis pulling from a local registry can take 3-5 minutes. Use `--timeout 600s` on `helm upgrade --install`.
+
+### First-Run Prerequisite — Pre-Push Images to Local Registry
+
+**The playbook will fail on first run if these images are not already in `kate0.local:30500`.** The role sets `global.seleniumGrid.imageRegistry: kate0.local:30500`, so k3s will only look there — not Docker Hub.
+
+Run these commands from any machine with Docker and access to the registry before running `ansible-playbook stage.yaml` for the first time (or after a chart/image tag upgrade):
+
+```bash
+# Pull from Docker Hub (multi-arch — ARM64 layers included)
+docker pull selenium/hub:4.43.0-20260404
+docker pull selenium/node-chromium:4.43.0-20260404
+
+# Tag for local registry
+docker tag selenium/hub:4.43.0-20260404 kate0.local:30500/selenium/hub:4.43.0-20260404
+docker tag selenium/node-chromium:4.43.0-20260404 kate0.local:30500/selenium/node-chromium:4.43.0-20260404
+
+# Push (registry auth uses docker_registry_htpasswd_* credentials)
+docker push kate0.local:30500/selenium/hub:4.43.0-20260404
+docker push kate0.local:30500/selenium/node-chromium:4.43.0-20260404
+```
+
+KEDA images pull from `ghcr.io` directly (not mirrored) — Pi nodes need outbound internet access for those, but that is already confirmed working via Prometheus/Grafana deploys.
