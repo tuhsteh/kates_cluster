@@ -12,12 +12,12 @@
          if board_detect_dt_model.content is defined
          else 'unknown' }}
 
-- name: Set board_platform fact
+- name: Set board_platform fact  # noqa: var-naming[no-role-prefix]
   ansible.builtin.set_fact:
     board_platform: >-
-      {%- if 'Raspberry Pi 4' in board_detect_model -%}pi4
-      {%- elif 'NanoPC-T4' in board_detect_model -%}nanopc-t4
-      {%- else -%}unknown{%- endif -%}
+      {{ 'pi4' if 'Raspberry Pi 4' in board_detect_model
+         else ('nanopc-t4' if 'NanoPC-T4' in board_detect_model
+         else 'unknown') }}
 
 - name: Assert board recognised
   ansible.builtin.assert:

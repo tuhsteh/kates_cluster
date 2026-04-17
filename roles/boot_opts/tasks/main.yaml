@@ -1,16 +1,48 @@
-- name: Detect boot firmware path
+---
+# --- Raspberry Pi 4B path ---
+- name: Detect boot firmware path (Pi)
   ansible.builtin.stat:
     path: /boot/firmware/cmdline.txt
   register: boot_opts_boot_firmware
+  when: board_platform == 'pi4'
 
-- name: Set cmdline_path fact
+- name: Set cmdline_path fact (Pi)
   ansible.builtin.set_fact:
     boot_opts_cmdline_path: "{{ '/boot/firmware/cmdline.txt' if boot_opts_boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
+  when: board_platform == 'pi4'
 
-- name: Add fsck.mode=skip to cmdline.txt
+- name: Add fsck.mode=skip to cmdline.txt (Pi)
   ansible.builtin.lineinfile:
     path: "{{ boot_opts_cmdline_path }}"
     backrefs: true
     regexp: '^((?!.*fsck\.mode=skip).+rootwait.*)$'
     line: '\1 fsck.mode=skip'
-  notify: reboot
+  when: board_platform == 'pi4'
+  notify: Reboot
+
+# --- NanoPC T-4 path ---
+- name: Slurp armbianEnv.txt (NanoPC)
+  ansible.builtin.slurp:
+    src: /boot/armbianEnv.txt
+  register: boot_opts_armbian_env
+  when: board_platform == 'nanopc-t4'
+
+- name: Extract current extraargs (NanoPC)
+  ansible.builtin.set_fact:
+    boot_opts_current_extraargs: >-
+      {{ (boot_opts_armbian_env.content | b64decode)
+         | regex_search('^extraargs=(.*)$', '\\1', multiline=True)
+         | first | default('') }}
+  when: board_platform == 'nanopc-t4'
+
+- name: Add fsck.mode=skip to armbianEnv.txt extraargs (NanoPC)
+  ansible.builtin.lineinfile:
+    path: /boot/armbianEnv.txt
+    regexp: '^extraargs='
+    line: >-
+      extraargs={{ ([boot_opts_current_extraargs]
+        + (['fsck.mode=skip'] if 'fsck.mode=skip' not in boot_opts_current_extraargs else []))
+        | join(' ') | trim }}
+    create: false
+  when: board_platform == 'nanopc-t4'
+  notify: Reboot

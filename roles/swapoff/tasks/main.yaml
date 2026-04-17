@@ -1,14 +1,28 @@
+---
+# --- Raspberry Pi 4B (dphys-swapfile) ---
 - name: Swapoff
   ansible.builtin.command: swapoff -a
   changed_when: false
+  when: board_platform == 'pi4'
 
 - name: Purge dphys-swapfile package
   ansible.builtin.apt:
     name: dphys-swapfile
     state: absent
     purge: true
+  when: board_platform == 'pi4'
 
 - name: Remove /var/swap file
   ansible.builtin.file:
     path: /var/swap
     state: absent
+  when: board_platform == 'pi4'
+
+# --- NanoPC T-4 (zram swap) ---
+- name: Stop zramswap service (NanoPC)
+  ansible.builtin.systemd:
+    name: zramswap
+    state: stopped
+    enabled: false
+  when: board_platform == 'nanopc-t4'
+  failed_when: false
