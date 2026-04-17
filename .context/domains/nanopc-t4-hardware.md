@@ -207,4 +207,4 @@ zcat /proc/config.gz | grep CONFIG_VXLAN   # expect =y or =m
 ## See Also
 
 - `.context/domains/raspberry-pi-hardware.md` — Pi 4B equivalent hardware reference
-- `.context/cache/nanopc-t4-rk3399-k3s-ansible-2025-07-14.md` — full research with code examples
+- `.context/cache/nanopc-t4-rk3399-k3s-ansible-2026-04-16.md` — full research with code examples
