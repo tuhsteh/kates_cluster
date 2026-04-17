@@ -1,3 +1,24 @@
-- name: Disable wifi
+---
+# --- Raspberry Pi 4B ---
+- name: Disable wifi (Pi)
   ansible.builtin.command: ifconfig wlan0 down
   changed_when: false
+  when: board_platform == 'pi4'
+
+# --- NanoPC T-4 (persistent via modprobe.d) ---
+- name: Blacklist brcmfmac WiFi driver (NanoPC)
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/disable-wifi.conf
+    content: "blacklist brcmfmac\n"
+    owner: root
+    group: root
+    mode: '0644'
+  when: board_platform == 'nanopc-t4'
+  register: disable_wifi_nanopc_blacklist
+
+- name: Rebuild initramfs to apply WiFi blacklist (NanoPC)
+  ansible.builtin.command: update-initramfs -u
+  when:
+    - board_platform == 'nanopc-t4'
+    - disable_wifi_nanopc_blacklist.changed
+  changed_when: true

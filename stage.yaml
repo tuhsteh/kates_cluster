@@ -2,6 +2,8 @@
   hosts: stage_leader
   become: true
   roles:
+    - role: board_detect
+      tags: [linux]
     - role: bashrc
       tags: [linux]
     - role: swapoff
@@ -53,6 +55,8 @@
   hosts: stage_members
   become: true
   roles:
+    - role: board_detect
+      tags: [linux]
     - role: bashrc
       tags: [linux]
     - role: swapoff

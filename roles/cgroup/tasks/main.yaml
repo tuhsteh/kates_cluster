@@ -1,20 +1,55 @@
-- name: Detect boot firmware path
+---
+# --- Raspberry Pi 4B path (cmdline.txt) ---
+- name: Detect boot firmware path (Pi)
   ansible.builtin.stat:
     path: /boot/firmware/cmdline.txt
   register: cgroup_boot_firmware
+  when: board_platform == 'pi4'
 
-- name: Set cmdline_path fact
+- name: Set cmdline_path fact (Pi)
   ansible.builtin.set_fact:
     cgroup_cmdline_path: "{{ '/boot/firmware/cmdline.txt' if cgroup_boot_firmware.stat.exists else '/boot/cmdline.txt' }}"
+  when: board_platform == 'pi4'
 
-- name: Activating cgroup support
+- name: Activating cgroup support (Pi)
   ansible.builtin.lineinfile:
     path: "{{ cgroup_cmdline_path }}"
     backrefs: true
     regexp: '^((?!.*cgroup_enable=memory).+rootwait.*)$'
     line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
+  when: board_platform == 'pi4'
   notify: reboot
 
+# --- NanoPC T-4 path (armbianEnv.txt) ---
+- name: Slurp armbianEnv.txt (NanoPC)
+  ansible.builtin.slurp:
+    src: /boot/armbianEnv.txt
+  register: cgroup_armbian_env
+  when: board_platform == 'nanopc-t4'
+
+- name: Extract current extraargs (NanoPC)
+  ansible.builtin.set_fact:
+    cgroup_current_extraargs: >-
+      {{ (cgroup_armbian_env.content | b64decode)
+         | regex_search('^extraargs=(.*)$', '\\1', multiline=True)
+         | first | default('') }}
+  when: board_platform == 'nanopc-t4'
+
+- name: Activating cgroup support (NanoPC)
+  ansible.builtin.lineinfile:
+    path: /boot/armbianEnv.txt
+    regexp: '^extraargs='
+    line: >-
+      extraargs={{ ([cgroup_current_extraargs]
+        + (['cgroup_enable=cpuset'] if 'cgroup_enable=cpuset' not in cgroup_current_extraargs else [])
+        + (['cgroup_memory=1']      if 'cgroup_memory=1'      not in cgroup_current_extraargs else [])
+        + (['cgroup_enable=memory'] if 'cgroup_enable=memory' not in cgroup_current_extraargs else []))
+        | join(' ') | trim }}
+    create: false
+  when: board_platform == 'nanopc-t4'
+  notify: reboot
+
+# --- Both boards (iptables) ---
 - name: Flush iptables before changing to iptables-legacy
   ansible.builtin.iptables:
     flush: true

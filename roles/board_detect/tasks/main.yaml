@@ -1,0 +1,25 @@
+---
+- name: Read /proc/device-tree/model
+  ansible.builtin.slurp:
+    src: /proc/device-tree/model
+  register: board_detect_dt_model
+  failed_when: false
+
+- name: Set board_model fact
+  ansible.builtin.set_fact:
+    board_detect_model: >-
+      {{ board_detect_dt_model.content | b64decode | trim
+         if board_detect_dt_model.content is defined
+         else 'unknown' }}
+
+- name: Set board_platform fact  # noqa: var-naming[no-role-prefix]
+  ansible.builtin.set_fact:
+    board_platform: >-
+      {{ 'pi4' if 'Raspberry Pi 4' in board_detect_model
+         else ('nanopc-t4' if 'NanoPC-T4' in board_detect_model
+         else 'unknown') }}
+
+- name: Assert board recognised
+  ansible.builtin.assert:
+    that: board_platform != 'unknown'
+    fail_msg: "Unrecognised board: '{{ board_detect_model }}'. Expected 'Raspberry Pi 4 Model B' or 'NanoPC-T4'."

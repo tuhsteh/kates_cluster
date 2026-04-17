@@ -485,3 +485,50 @@ The `videoRecorder` runs FFmpeg in software-only mode (Pi 4B has no GPU). Values
 | `SE_SCREEN_HEIGHT` | 720 | Same |
 
 To disable video recording: set `selenium_grid_video_enabled: false` in group_vars.
+
+---
+
+## Multi-Board Ansible Detection
+
+The cluster supports mixed Pi 4B + NanoPC T-4 nodes. Board type is detected at playbook runtime by the `board_detect` role (always first in both plays).
+
+### `ansible_board_name` is empty on ARM SBCs
+
+Both Raspberry Pi 4B and NanoPC T-4 return `""` for `ansible_board_name` and `ansible_product_name` — ARM boards don't expose DMI/SMBIOS data. **Do not use these facts for board detection.**
+
+Confirmed by: https://github.com/ansible/ansible/issues/42632
+
+### Use `/proc/device-tree/model`
+
+```yaml
+- name: Read /proc/device-tree/model
+  ansible.builtin.slurp:
+    src: /proc/device-tree/model
+  register: board_detect_dt_model
+
+- name: Set board_platform fact  # noqa: var-naming[no-role-prefix]
+  ansible.builtin.set_fact:
+    board_platform: >-
+      {{ 'pi4' if 'Raspberry Pi 4' in (board_detect_dt_model.content | b64decode | trim)
+         else ('nanopc-t4' if 'NanoPC-T4' in (board_detect_dt_model.content | b64decode | trim)
+         else 'unknown') }}
+```
+
+| Board | `/proc/device-tree/model` |
+|-------|--------------------------|
+| Raspberry Pi 4B | `Raspberry Pi 4 Model B Rev 1.x` |
+| NanoPC T-4 | `FriendlyARM NanoPC-T4` or `FriendlyELEC NanoPC-T4` |
+
+Note: the string has a NUL terminator — always `| trim`.
+
+### Gate tasks by board_platform
+
+```yaml
+when: board_platform == 'pi4'        # Pi-only tasks
+when: board_platform == 'nanopc-t4'  # NanoPC-only tasks
+# (no when:)                         # runs on both
+```
+
+`board_platform` is intentionally a cross-role fact (no role prefix). Suppress lint with `# noqa: var-naming[no-role-prefix]` on the set_fact task.
+
+See `.context/domains/nanopc-t4-hardware.md` for full NanoPC T-4 reference.
