@@ -1,6 +1,6 @@
 # NanoPC T-4 / RK3399 on k3s — Research Cache
 
-**Research Date:** 2025-07-14
+**Research Date:** 2026-04-16
 **Researched By:** @researcher
 **Task:** multi-board-support — evaluate replacing Pi 4B nodes with NanoPC T-4 in k3s Ansible cluster
 
