@@ -5,7 +5,7 @@
 
 - name: Show debug output
   ansible.builtin.debug:
-    msg: "{{ apt_get_update.stdout_lines }}"
+    msg: "cache updated: {{ apt_get_update.cache_updated }}"
 
 - name: Apt-get upgrade
   ansible.builtin.apt:
@@ -14,7 +14,7 @@
 
 - name: Show debug output
   ansible.builtin.debug:
-    msg: "{{ apt_get_upgrade.stdout_lines }}"
+    msg: "{{ apt_get_upgrade.stdout_lines | default(['(no output)']) }}"
 
 - name: Apt-get autoremove
   ansible.builtin.apt:
@@ -23,4 +23,4 @@
 
 - name: Show debug output
   ansible.builtin.debug:
-    msg: "{{ apt_get_autoremove.stdout_lines }}"
+    msg: "{{ apt_get_autoremove.stdout_lines | default(['(no output)']) }}"
