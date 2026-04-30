@@ -9,16 +9,36 @@
 - name: Blacklist brcmfmac WiFi driver (NanoPC)
   ansible.builtin.copy:
     dest: /etc/modprobe.d/disable-wifi.conf
-    content: "blacklist brcmfmac\n"
+    content: "blacklist brcmfmac\nblacklist brcmutil\n"
     owner: root
     group: root
     mode: '0644'
   when: board_platform == 'nanopc-t4'
   register: disable_wifi_nanopc_blacklist
 
+- name: Check if update-initramfs is available (NanoPC)
+  ansible.builtin.stat:
+    path: /usr/sbin/update-initramfs
+  register: disable_wifi_update_initramfs_stat
+  when: board_platform == 'nanopc-t4'
+
 - name: Rebuild initramfs to apply WiFi blacklist (NanoPC)
   ansible.builtin.command: update-initramfs -u
+  # board_platform guard must stay first: stat is only registered on NanoPC-T4 hosts (short-circuit safety for Pi 4B)
   when:
     - board_platform == 'nanopc-t4'
     - disable_wifi_nanopc_blacklist.changed
+    - disable_wifi_update_initramfs_stat.stat.exists
   changed_when: true
+
+- name: Warn operator that initramfs was NOT rebuilt after WiFi blacklist write (NanoPC)
+  ansible.builtin.debug:
+    msg: >-
+      WiFi blacklist was written to /etc/modprobe.d/disable-wifi.conf but initramfs was NOT rebuilt
+      because update-initramfs was not found on this host.
+      You MUST run 'update-initramfs -u' manually before the next reboot,
+      or the brcmfmac module may still load from initrd and WiFi will NOT be disabled.
+  when:
+    - board_platform == 'nanopc-t4'
+    - disable_wifi_nanopc_blacklist.changed
+    - not disable_wifi_update_initramfs_stat.stat.exists
