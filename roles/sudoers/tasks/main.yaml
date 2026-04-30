@@ -1,0 +1,8 @@
+- name: Grant pi passwordless sudo
+  ansible.builtin.copy:
+    content: "pi ALL=(ALL) NOPASSWD: ALL\n"
+    dest: /etc/sudoers.d/pi-nopasswd
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
