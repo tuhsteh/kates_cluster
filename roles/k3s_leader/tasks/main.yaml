@@ -44,7 +44,7 @@
     owner: root
     group: root
     mode: '0644'
-  notify: restart k3s
+  notify: Restart k3s
 
 - name: Install k3s server
   ansible.builtin.get_url:

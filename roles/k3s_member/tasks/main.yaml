@@ -44,7 +44,7 @@
     owner: root
     group: root
     mode: '0644'
-  notify: restart k3s-agent
+  notify: Restart k3s-agent
 
 - name: Fetch node token from leader when not already in memory
   ansible.builtin.slurp:
