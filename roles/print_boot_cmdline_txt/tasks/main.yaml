@@ -13,23 +13,11 @@
   when: board_platform == 'pi4'
 
 # --- NanoPC T-4 ---
-- name: Print /boot/armbianEnv.txt (NanoPC)
-  ansible.builtin.command: cat /boot/armbianEnv.txt
-  become: true
-  register: print_boot_cmdline_txt_nanopc_env
-  changed_when: false
-  when: board_platform == 'nanopc-t4'
-
 - name: Print /proc/cmdline (NanoPC)
   ansible.builtin.command: cat /proc/cmdline
   become: true
   register: print_boot_cmdline_txt_nanopc_proc
   changed_when: false
-  when: board_platform == 'nanopc-t4'
-
-- name: Show armbianEnv.txt (NanoPC)
-  ansible.builtin.debug:
-    msg: "{{ print_boot_cmdline_txt_nanopc_env.stdout_lines }}"
   when: board_platform == 'nanopc-t4'
 
 - name: Show /proc/cmdline (NanoPC)

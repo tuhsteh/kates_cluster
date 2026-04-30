@@ -1,13 +1,16 @@
 ---
+# --- Raspberry Pi 4B ---
 # Defensive re-gather ensures ansible_devices is populated even if the calling play has gather_facts disabled.
 - name: Gather block device facts
   ansible.builtin.setup:
     gather_subset:
       - hardware
+  when: board_platform == 'pi4'
 
 - name: Set ssd_device fact from NVMe device
   ansible.builtin.set_fact:
     ssd_mount_device: "{{ ansible_devices.keys() | select('match', '^nvme[0-9]+n[0-9]+$') | list | sort | first | default('') }}"
+  when: board_platform == 'pi4'
 
 - name: Set ssd_device fact from SATA device (fallback when no NVMe found)
   ansible.builtin.set_fact:
@@ -23,7 +26,9 @@
         | first
         | default('')
       }}
-  when: ssd_mount_device == ''
+  when:
+    - board_platform == 'pi4'
+    - ssd_mount_device == ''
 
 - name: Fail if no SSD device was discovered
   ansible.builtin.fail:
@@ -31,36 +36,48 @@
       No m.2 SSD found on {{ inventory_hostname }}.
       Detected devices: {{ ansible_devices.keys() | list }}.
       Expected an NVMe device (nvme[0-9]+n[0-9]+) or a non-removable SATA device (sd[a-z]+).
-  when: ssd_mount_device == ''
+  when:
+    - board_platform == 'pi4'
+    - ssd_mount_device == ''
 
 - name: Create ext4 filesystem on SSD (skipped if filesystem already present)
   community.general.filesystem:
     fstype: ext4
     dev: "/dev/{{ ssd_mount_device }}"
     force: false
+  when: board_platform == 'pi4'
 
 - name: Read UUID of SSD filesystem
   ansible.builtin.command: "blkid -s UUID -o value /dev/{{ ssd_mount_device }}"
   register: ssd_mount_uuid_result
   changed_when: false
-  when: not ansible_check_mode
+  when:
+    - board_platform == 'pi4'
+    - not ansible_check_mode
 
 - name: Set ssd_uuid fact
   ansible.builtin.set_fact:
     ssd_mount_uuid: "{{ ssd_mount_uuid_result.stdout | trim }}"
-  when: not ansible_check_mode
+  when:
+    - board_platform == 'pi4'
+    - not ansible_check_mode
 
 - name: Set ssd_uuid fact (check mode placeholder)
   ansible.builtin.set_fact:
     ssd_mount_uuid: "CHECK-MODE-PLACEHOLDER"
-  when: ansible_check_mode
+  when:
+    - board_platform == 'pi4'
+    - ansible_check_mode
 
 - name: Fail if UUID could not be read from SSD
   ansible.builtin.fail:
     msg: >
       Could not read UUID from /dev/{{ ssd_mount_device }} on {{ inventory_hostname }}.
       blkid returned empty output — filesystem may not have been created correctly.
-  when: not ansible_check_mode and ssd_mount_uuid == ''
+  when:
+    - board_platform == 'pi4'
+    - not ansible_check_mode
+    - ssd_mount_uuid == ''
 
 - name: Create /mnt/ssd mount point directory
   ansible.builtin.file:
@@ -69,6 +86,7 @@
     owner: root
     group: root
     mode: "0755"
+  when: board_platform == 'pi4'
 
 - name: Mount SSD at /mnt/ssd and persist in /etc/fstab
   ansible.posix.mount:
@@ -79,3 +97,16 @@
     dump: "0"
     passno: "2"
     state: mounted
+  when: board_platform == 'pi4'
+
+# --- NanoPC T-4 ---
+# On NanoPC-T4, nvme0n1 IS the root filesystem (root=/dev/nvme0n1p1).
+# Do not touch the NVMe device. Only create /data for application use.
+- name: Create /data directory (NanoPC)
+  ansible.builtin.file:
+    path: /data
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: board_platform == 'nanopc-t4'

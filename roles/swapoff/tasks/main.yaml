@@ -18,11 +18,10 @@
     state: absent
   when: board_platform == 'pi4'
 
-# --- NanoPC T-4 (zram swap) ---
-- name: Stop zramswap service (NanoPC)
-  ansible.builtin.systemd:
-    name: zramswap
-    state: stopped
-    enabled: false
+# --- NanoPC T-4 ---
+- name: No swap present on NanoPC-T4 (FriendlyElec Debian 13)
+  ansible.builtin.debug:
+    msg: >-
+      FriendlyElec NanoPC-T4 has no swap configured (no zramswap service,
+      no swap file). No action needed.
   when: board_platform == 'nanopc-t4'
-  failed_when: false

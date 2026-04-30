@@ -20,34 +20,15 @@
   when: board_platform == 'pi4'
   notify: reboot
 
-# --- NanoPC T-4 path (armbianEnv.txt) ---
-- name: Slurp armbianEnv.txt (NanoPC)
-  ansible.builtin.slurp:
-    src: /boot/armbianEnv.txt
-  register: cgroup_armbian_env
+# --- NanoPC T-4 ---
+- name: Cgroup flags pre-compiled in FriendlyElec kernel (NanoPC)
+  ansible.builtin.debug:
+    msg: >-
+      [WARNING] cgroup_enable=cpuset is ABSENT from the FriendlyElec kernel cmdline
+      (kernel 4.19.232, compiled into firmware — cannot be changed via Ansible).
+      k3s pod CPU resource limits (resources.limits.cpu) will NOT be enforced on this node.
+      Memory limits work correctly: cgroup_enable=memory and cgroup_memory=1 are present.
   when: board_platform == 'nanopc-t4'
-
-- name: Extract current extraargs (NanoPC)
-  ansible.builtin.set_fact:
-    cgroup_current_extraargs: >-
-      {{ (cgroup_armbian_env.content | b64decode)
-         | regex_search('^extraargs=(.*)$', '\\1', multiline=True)
-         | first | default('') }}
-  when: board_platform == 'nanopc-t4'
-
-- name: Activating cgroup support (NanoPC)
-  ansible.builtin.lineinfile:
-    path: /boot/armbianEnv.txt
-    regexp: '^extraargs='
-    line: >-
-      extraargs={{ ([cgroup_current_extraargs]
-        + (['cgroup_enable=cpuset'] if 'cgroup_enable=cpuset' not in cgroup_current_extraargs else [])
-        + (['cgroup_memory=1']      if 'cgroup_memory=1'      not in cgroup_current_extraargs else [])
-        + (['cgroup_enable=memory'] if 'cgroup_enable=memory' not in cgroup_current_extraargs else []))
-        | join(' ') | trim }}
-    create: false
-  when: board_platform == 'nanopc-t4'
-  notify: reboot
 
 # --- Both boards (iptables) ---
 - name: Flush iptables before changing to iptables-legacy
