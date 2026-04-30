@@ -48,5 +48,5 @@
     marker: "# {mark} ANSIBLE MANAGED — cluster nodes"
     block: |
       {% for host in groups['all'] %}
-      {{ hostvars[host]['ansible_default_ipv4']['address'] | default(hostvars[host].get('ansible_host', host)) }} {{ host }}
+      {{ hostvars[host].get('ansible_facts', {}).get('default_ipv4', {}).get('address', hostvars[host].get('ansible_host', host)) }} {{ host }}
       {% endfor %}
