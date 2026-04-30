@@ -176,6 +176,66 @@ blacklist brcmutil
 
 ---
 
+## mDNS / Hostname Resolution
+
+### Trixie TC Decision: Avahi (not systemd-resolved)
+
+Debian Trixie's systemd-resolved is compiled with `-Ddefault-mdns=no`. Dropping a
+`MulticastDNS=yes` drop-in into `/etc/systemd/resolved.conf.d/` is wrong — resolved
+can **resolve** `.local` names but cannot **announce** the host. Avahi is the Trixie
+Technical Committee-blessed mDNS stack.
+
+The `mdns` role does the following in order:
+1. Disables systemd-resolved mDNS explicitly (`60-disable-mdns.conf` drop-in with `MulticastDNS=no`).
+2. Installs `avahi-daemon` + `libnss-mdns`.
+3. Restricts avahi to the physical NIC via `allow-interfaces=` in `avahi-daemon.conf`.
+4. Manages a static `/etc/hosts` block for all cluster nodes.
+
+### Avahi Stack
+
+- **Packages**: `avahi-daemon` + `libnss-mdns`
+- `libnss-mdns` postinst automatically injects `mdns4_minimal [NOTFOUND=return]` into
+  `/etc/nsswitch.conf` — no manual nsswitch editing needed.
+
+### Critical k3s Guard: `allow-interfaces`
+
+```ini
+# /etc/avahi/avahi-daemon.conf  — Ansible-managed via lineinfile
+[server]
+allow-interfaces=eth0
+```
+
+**This MUST be set before k3s installs flannel/CNI.** Without it, avahi joins multicast
+on every interface including `flannel.1`, `cni0`, and `veth*` interfaces created by k3s
+— and may respond to `.local` queries with a CNI bridge IP instead of the physical `eth0`
+IP. This causes inter-node resolution to break silently after k3s is provisioned.
+
+**Apply this rule to any role that installs a multicast-aware service** — restrict to
+physical interface before k3s creates virtual NICs.
+
+### Physical NIC
+
+- Confirmed interface: **`eth0`** (verified via `ip -o link show` on hardware)
+- `wlan0` is present but DORMANT — disabled by the `disable_wifi` `modprobe.d` blacklist
+  (see the Networking section above)
+- Role variable: `mdns_physical_iface` (default `eth0`) — overridable per inventory if
+  NIC naming differs on a board variant
+
+### Dual-Layer Resolution Pattern
+
+| Layer | Mechanism | Purpose |
+|-------|-----------|---------|
+| `.local` (mDNS) | avahi-daemon | Discoverable from laptop; no config needed on client |
+| Static entries | Ansible `/etc/hosts` block | Zero-latency inter-node; survives UDP multicast loss under k3s load |
+
+**Do not rely solely on mDNS multicast** for inter-node name resolution under k3s load.
+The `mdns` role populates `/etc/hosts` with all cluster nodes using
+`ansible_default_ipv4.address` (gathered fact) with a `| default()` fallback to
+`ansible_host`. k3s control-plane traffic uses these static `/etc/hosts` entries, not
+mDNS UDP multicast.
+
+---
+
 ## k3s Requirements
 
 ### cgroup Flags
@@ -231,6 +291,7 @@ zcat /proc/config.gz | grep CONFIG_VXLAN   # expect =y or =m
 | `log_ramdisk` | ✅ | ✅ | Unchanged |
 | `longhorn` | ✅ | ✅ | Unchanged |
 | `longhorn_prereqs` | ✅ | ✅ | Unchanged |
+| `mdns` | ✅ | ✅ | Avahi + libnss-mdns; allow-interfaces=eth0 guard; /etc/hosts block |
 | `mem_count` | ✅ | ✅ | Unchanged |
 | `network_tmpfs` | ✅ | ✅ | Unchanged — auto-skips without dhcpcd |
 | `print_boot_cmdline_txt` | ✅ | ✅ | Shows `/proc/cmdline` only (armbianEnv.txt removed) |

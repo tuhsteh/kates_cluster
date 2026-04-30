@@ -1,15 +1,52 @@
-- name: Detect OS
-  become: true
-  ansible.builtin.slurp:
-    src: /etc/os-release
-  register: mdns_os_version
+---
+- name: Install avahi-daemon and libnss-mdns
+  ansible.builtin.apt:
+    name:
+      - avahi-daemon
+      - libnss-mdns
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
 
-- name: Write mDNS startup systemd
+- name: Ensure systemd-resolved drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Disable systemd-resolved mDNS
   ansible.builtin.copy:
-    src: 60-enable-mdns.conf
-    dest: /etc/systemd/resolved.conf.d/60-enable-mdns.conf
-    owner: pi
-    mode: "0644"
-  when:
-    - board_platform == 'nanopc-t4'
-    - mdns_os_version == 'trixie'
+    dest: /etc/systemd/resolved.conf.d/60-disable-mdns.conf
+    content: |
+      # Ansible managed
+      [Resolve]
+      MulticastDNS=no
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart systemd-resolved
+
+- name: Restrict avahi to physical interface
+  ansible.builtin.lineinfile:
+    path: /etc/avahi/avahi-daemon.conf
+    regexp: '^allow-interfaces='
+    insertafter: '^\[server\]'
+    line: 'allow-interfaces={{ mdns_physical_iface }}'
+  notify: Restart avahi-daemon
+
+- name: Enable and start avahi-daemon
+  ansible.builtin.service:
+    name: avahi-daemon
+    state: started
+    enabled: true
+
+- name: Add cluster nodes to /etc/hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED — cluster nodes"
+    block: |
+      {% for host in groups['all'] %}
+      {{ hostvars[host]['ansible_default_ipv4']['address'] | default(hostvars[host].get('ansible_host', host)) }} {{ host }}
+      {% endfor %}

@@ -17,7 +17,7 @@ Each tag maps to a named concern. Applying a tag runs only the roles in that gro
 
 | Tag | Roles | Plays |
 |-----|-------|-------|
-| `linux` | `board_detect`, `bashrc`, `swapoff`, `date`, `mem_count`, `print_boot_cmdline_txt`, `cgroup`, `fstab`, `sysctl_sdcard`, `log_ramdisk`, `network_tmpfs`, `apt_hardening`, `services_headless`, `fake_hwclock`, `boot_opts`, `apt_get`, `ssd_mount` | both |
+| `linux` | `board_detect`, `bashrc`, `mdns`, `swapoff`, `date`, `mem_count`, `print_boot_cmdline_txt`, `cgroup`, `fstab`, `sysctl_sdcard`, `log_ramdisk`, `network_tmpfs`, `apt_hardening`, `services_headless`, `fake_hwclock`, `boot_opts`, `apt_get`, `ssd_mount` | both |
 | `k3s` | `k3s_leader` / `k3s_member` | both |
 | `storage` | `longhorn_prereqs`, `longhorn` | both — but `longhorn` only runs on `stage_leader`; members get `longhorn_prereqs` only |
 | `registry` | `docker_registry` | `stage_leader` only |
