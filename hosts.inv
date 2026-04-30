@@ -1,9 +1,14 @@
 
 
 [stage_leader]
-kate0.local
+kate0.local=10.0.0.55
 
 [stage_members]
-kate[1:7].local
-
+kate1.local=10.0.0.62
+kate2.local=10.0.0.56
+kate3.local=10.0.0.61
+kate4.local=10.0.0.60
+kate5.local=10.0.0.57
+kate6.local=10.0.0.59
+kate7.local=10.0.0.58
 
