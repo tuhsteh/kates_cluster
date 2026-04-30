@@ -4,6 +4,8 @@
   roles:
     - role: board_detect
       tags: [linux]
+    - role: sudoers
+      tags: [linux]
     - role: bashrc
       tags: [linux]
     - role: mdns
@@ -58,6 +60,8 @@
   become: true
   roles:
     - role: board_detect
+      tags: [linux]
+    - role: sudoers
       tags: [linux]
     - role: bashrc
       tags: [linux]
