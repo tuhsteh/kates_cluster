@@ -2,19 +2,24 @@
 
 **Boards:** FriendlyELEC NanoPC T-4  
 **SoC:** Rockchip RK3399 — 2× Cortex-A72 @ 2.0 GHz + 4× Cortex-A53 @ 1.5 GHz, AArch64  
-**Reference:** `.context/cache/nanopc-t4-rk3399-k3s-ansible-2025-07-14.md` for full research detail
+**OS Scope:** FriendlyElec official Debian 13 Core (kernel 4.19.232, FriendlyElec BSP fork `nanopi4-v4.19.y`)  
+**Reference:** `.context/cache/friendlyelec-debian13-nanopc-t4-2026-04-30.md` for full research detail
 
 ---
 
 ## OS / Distro
 
-**Use Armbian "current" (kernel 6.6 LTS, Debian Bookworm base).**  
-- Official NanoPC T-4 support; board-specific device tree included  
-- cgroup v2 enabled by default  
-- Same Debian/APT ecosystem as Raspberry Pi OS Bookworm  
-- **Do NOT use FriendlyCore** — ships kernel 4.19, predates k3s cgroup requirements
+**Use FriendlyElec official Debian 13 Core.**  
+- OS: FriendlyElec official Debian 13 Core (Debian Trixie base)  
+- Kernel: 4.19.232 (FriendlyElec BSP fork, `nanopi4-v4.19.y`)  
+- U-Boot: Rockchip vendor fork 2017.09  
+- Image filename pattern: `rk3399-XYZ-debian-trixie-core-4.19-arm64-YYYYMMDD.img.gz`  
+- Default credentials: user `pi` / password `pi`; root password `fa`  
+- First-boot: `sudo firstboot && sudo reboot`  
+- cgroup hierarchy: v1 (default for kernel 4.19)  
+- Same Debian/APT ecosystem as Raspberry Pi OS
 
-Download: https://www.armbian.com/nanopc-t4/ (choose "current", not "edge")
+Download: https://download.friendlyelec.com/NanoPC-T4 (select Debian Trixie core image)
 
 ---
 
@@ -22,28 +27,37 @@ Download: https://www.armbian.com/nanopc-t4/ (choose "current", not "edge")
 
 ### Key Difference from Pi 4B
 
-Pi OS: `/boot/firmware/cmdline.txt` — space-separated tokens on one line  
-Armbian/NanoPC T-4: **`/boot/armbianEnv.txt`** — key=value format, `extraargs=` key for kernel parameters
+Pi OS: `/boot/firmware/cmdline.txt` — space-separated tokens, Ansible-manageable  
+FriendlyElec/NanoPC T-4: **Rockchip proprietary GPT partition-based boot** — kernel cmdline is compiled into `resource.img` (partition 5 on eMMC). **Cannot be modified via Ansible.**
 
-Neither `/boot/cmdline.txt` nor `/boot/firmware/cmdline.txt` exist on Armbian. The existing `boot_opts` and `cgroup` role stat-checks will return `exists: false` on NanoPC T-4 — which is why the `board_detect` role gates are required.
+Neither `/boot/armbianEnv.txt` nor `/boot/extlinux/extlinux.conf` exist on FriendlyElec Debian 13 (verified on hardware). The `boot_opts` and `cgroup` roles emit a debug no-op for NanoPC T-4.
 
-### `/boot/armbianEnv.txt` Format
+### Boot Chain
 
-```ini
-verbosity=1
-overlay_prefix=rockchip
-rootdev=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-rootfstype=ext4
-extraargs=cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory fsck.mode=skip
+```
+ROM → Miniloader/SPL → U-Boot 2017.09
+    → raw kernel (eMMC partition 6)
+    → DTB from resource.img (eMMC partition 5)  ← kernel cmdline compiled here
+    → initrd (eMMC partition 7, ext4)
+    → rootfs (eMMC partition 8, or NVMe — see Storage section)
 ```
 
-`extraargs=` is a **complete single line** — Ansible must read the current value, check for existing tokens, and write the full modified line. Do NOT blindly append.
+### Actual Kernel Cmdline (from hardware)
 
-### Diagnostic equivalent of `/boot/cmdline.txt`
+```
+storagemedia=emmc androidboot.storagemedia=emmc androidboot.mode=normal
+androidboot.dtbo_idx=0 earlycon=uart8250,mmio32,0xff1a0000 swiotlb=1
+coherent_pool=1m rw cgroup_enable=memory cgroup_memory=1
+console=ttyFIQ0 consoleblank=0 root=/dev/nvme0n1p1
+rootflags=discard rootfstype=ext4 bootdev=/dev/mmcblk2
+```
+
+Note: `cgroup_enable=memory cgroup_memory=1` are already present. `cgroup_enable=cpuset` is **absent** — cannot be added without kernel recompilation.
+
+### Diagnostic Command
 
 ```bash
-cat /boot/armbianEnv.txt    # Armbian parameter file
-cat /proc/cmdline           # Active kernel cmdline at runtime
+cat /proc/cmdline   # only option — no file to view or modify
 ```
 
 ---
@@ -86,54 +100,79 @@ when: board_platform == 'nanopc-t4' # NanoPC-only
 
 ## Storage
 
-### eMMC (OS root)
+### eMMC (boot device)
 
-- Device: `/dev/mmcblk0`  
-- OS boots from eMMC exclusively; SD card slot is available as `/dev/mmcblk1` simultaneously  
-- `fstab` role regex works as-is (matches any ext4 root partition)  
-- `noatime,commit=60` tuning applies equally to eMMC flash
+- Device: `/dev/mmcblk2` (NOT `/dev/mmcblk0` — that is the SD card)
+- SD card: `/dev/mmcblk0`
+- eMMC holds the bootloader and kernel partitions; the standard FriendlyElec layout puts rootfs at mmcblk2p8
 
-### NVMe (data)
+#### eMMC Partition Layout
 
-- PCIe x4 M.2 slot, directly on-board (no USB adapter needed)  
-- Device: `/dev/nvme0n1`  
-- The `ssd_mount` role detects NVMe first → works on NanoPC T-4 **unchanged**
+| Partition | Name | Type | Notes |
+|-----------|------|------|-------|
+| mmcblk2p1 | uboot | raw | U-Boot 2017.09 |
+| mmcblk2p2 | trust | raw | ARM Trusted Firmware |
+| mmcblk2p3 | misc | raw | |
+| mmcblk2p4 | dtbo | raw | Device tree overlays |
+| mmcblk2p5 | resource | raw | **Kernel cmdline compiled here** |
+| mmcblk2p6 | kernel | raw | Raw kernel image |
+| mmcblk2p7 | boot | ext4 | |
+| mmcblk2p8 | rootfs | ext4 | ~2.4 GB — used when NOT booting to NVMe |
+| mmcblk2p9 | userdata | ext4 | ~28.8 GB |
+
+### NVMe (root filesystem in cluster setup)
+
+⚠️ **The NVMe IS the root filesystem for this cluster.**
+
+- Device: `/dev/nvme0n1`, PCIe x4 M.2 slot (directly on-board)
+- `/dev/nvme0n1p1` is mounted at `/` (confirmed from `root=/dev/nvme0n1p1` in cmdline)
+- eMMC boots the system, but all writable data including rootfs live on NVMe
+- **The `ssd_mount` role does NOT format or mount the NVMe** — it only creates `/data` (NVMe is already root)
+- Data directory: `/data` on the NVMe root (created by `ssd_mount` role)
+
+#### k3s Data Directories
+
+| Board | Path |
+|-------|------|
+| NanoPC T-4 | `/data` (on NVMe root) |
+| Pi 4B | `/mnt/ssd` |
+
+**Note:** Wiring the correct k3s data dir per board into k3s roles is a pending follow-on task.
 
 ### sysctl Tuning
 
-`sysctl_sdcard` role values apply identically to eMMC (both are NAND flash). No changes needed.
+`sysctl_sdcard` tuning applies to eMMC (mmcblk2) — same NAND flash characteristics as an SD card. No changes needed.
 
 ---
 
 ## Swap
 
-Armbian uses **zram** swap by default, not `dphys-swapfile`. The `swapoff` role needs a NanoPC-specific path:
+FriendlyElec Debian 13 Core has **no swap at all**:
 
-```bash
-# Disable zram swap on NanoPC T-4
-systemctl stop zramswap || true
-systemctl disable zramswap || true
-```
+- `swapon` command is absent from the image  
+- `zramswap` service does not exist  
+- The `swapoff` role emits a debug no-op message for NanoPC T-4 — no action taken
 
 ---
 
 ## Networking
 
 - **Single** Gigabit Ethernet port (Realtek PHY) — NOT dual  
-- Interface name: `eth0` (standard Armbian predictable naming)  
-- Armbian uses **NetworkManager** (no `dhcpcd`)  
+- Interface name: `eth0`  
+- Uses **NetworkManager** (no `dhcpcd`)  
 - `network_tmpfs` role: auto-skips when `dhcpcd` is absent — no changes needed
 
 ### WiFi Disable (Persistent)
 
-Armbian: `ifconfig wlan0 down` does NOT persist across reboots (NetworkManager brings it back). For permanent disable:
+`ifconfig wlan0 down` does NOT persist across reboots (NetworkManager brings it back). The `disable_wifi` role uses a `modprobe.d` blacklist:
 
 ```bash
-echo "blacklist brcmfmac" > /etc/modprobe.d/disable-wifi.conf
-update-initramfs -u
+# /etc/modprobe.d/disable-wifi.conf
+blacklist brcmfmac
+blacklist brcmutil
 ```
 
-The `disable_wifi` role needs a NanoPC-specific path using `modprobe.d` blacklist.
+`update-initramfs -u` is run conditionally if the binary is present on the image.
 
 ---
 
@@ -141,19 +180,21 @@ The `disable_wifi` role needs a NanoPC-specific path using `modprobe.d` blacklis
 
 ### cgroup Flags
 
-Same flags as Pi 4B, different file:
-```
-cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
-```
-→ goes in `extraargs=` line of `/boot/armbianEnv.txt`
+`cgroup_enable=memory` and `cgroup_memory=1` are **already compiled into the kernel image** — no Ansible action needed or possible.
+
+⚠️ `cgroup_enable=cpuset` is **absent** from the kernel cmdline and cannot be added without kernel recompilation. This means pod CPU resource limits (`resources.limits.cpu`) are **not enforced** on NanoPC T-4 nodes. Memory limits work correctly.
+
+- cgroup hierarchy: v1 (default on kernel 4.19)
+- The `cgroup` role emits a debug warning for NanoPC T-4 documenting the cpuset gap; iptables tasks run for both boards.
+- The `boot_opts` role is a no-op on NanoPC T-4 (`fsck.mode=skip` cannot be applied via Ansible).
 
 ### iptables-legacy
 
-Same requirement as Pi. Armbian defaults to `iptables-nft`. The `community.general.alternatives` tasks in the `cgroup` role work identically.
+Same requirement as Pi. The `community.general.alternatives` tasks in the `cgroup` role apply identically to both boards.
 
 ### VXLAN Module
 
-Verify Armbian 6.6 LTS image includes VXLAN before deploying:
+Verify the FriendlyElec 4.19 BSP image includes VXLAN:
 ```bash
 zcat /proc/config.gz | grep CONFIG_VXLAN   # expect =y or =m
 ```
@@ -165,9 +206,9 @@ zcat /proc/config.gz | grep CONFIG_VXLAN   # expect =y or =m
 - CPU 0–3: Cortex-A53 (efficiency, 1.5 GHz)  
 - CPU 4–5: Cortex-A72 (performance, 2.0 GHz)  
 - **No special kernel flags required** for k3s  
-- **CPU governor:** `schedutil` (Armbian default) — optimal for mixed workloads  
+- **CPU governor:** `schedutil` — optimal for mixed workloads  
 - **Do NOT use `isolcpus`** on cluster worker nodes  
-- EAS (Energy-Aware Scheduling) may not be fully functional on some Armbian versions — affects efficiency, not correctness
+- EAS (Energy-Aware Scheduling) may not be fully functional on kernel 4.19 BSP — affects efficiency, not correctness
 
 ---
 
@@ -178,11 +219,11 @@ zcat /proc/config.gz | grep CONFIG_VXLAN   # expect =y or =m
 | `apt_get` | ✅ | ✅ | Unchanged |
 | `apt_hardening` | ✅ | ✅ | Unchanged |
 | `bashrc` | ✅ | ✅ | Unchanged |
-| `boot_opts` | ✅ | ❌ | **NanoPC task** — armbianEnv.txt extraargs |
-| `cgroup` (cmdline) | ✅ | ❌ | **NanoPC task** — armbianEnv.txt extraargs |
-| `cgroup` (iptables) | ✅ | ✅ | Unchanged |
+| `boot_opts` | ✅ | ⚠️ | No-op — emits debug; boot params compiled into firmware |
+| `cgroup` (cmdline) | ✅ | ⚠️ | No-op — flags pre-compiled; cpuset gap documented |
+| `cgroup` (iptables) | ✅ | ✅ | Unchanged — runs on both boards |
 | `date` | ✅ | ✅ | Unchanged |
-| `disable_wifi` | ✅ | ⚠️ | **Board gate** — add modprobe.d blacklist for NanoPC |
+| `disable_wifi` | ✅ | ✅ | modprobe.d blacklist (brcmfmac + brcmutil); update-initramfs conditional |
 | `fake_hwclock` | ✅ | ✅ | Unchanged — already stat-conditional |
 | `fstab` | ✅ | ✅ | Unchanged |
 | `k3s_leader` | ✅ | ✅ | Unchanged |
@@ -192,19 +233,18 @@ zcat /proc/config.gz | grep CONFIG_VXLAN   # expect =y or =m
 | `longhorn_prereqs` | ✅ | ✅ | Unchanged |
 | `mem_count` | ✅ | ✅ | Unchanged |
 | `network_tmpfs` | ✅ | ✅ | Unchanged — auto-skips without dhcpcd |
-| `print_boot_cmdline_txt` | ✅ | ❌ | **NanoPC task** — cat armbianEnv.txt + /proc/cmdline |
+| `print_boot_cmdline_txt` | ✅ | ✅ | Shows `/proc/cmdline` only (armbianEnv.txt removed) |
 | `prometheus` | ✅ | ✅ | Unchanged |
 | `selenium_*` | ✅ | ✅ | Unchanged |
 | `services_headless` | ✅ | ✅ | Unchanged |
-| `ssd_mount` | ✅ | ✅ | Unchanged — detects nvme0n1 correctly |
-| `swapoff` | ✅ | ⚠️ | **Board gate** — add zram disable for NanoPC |
+| `ssd_mount` | ✅ | ✅ | Creates `/data` directory; does NOT format/mount NVMe (it is the root) |
+| `swapoff` | ✅ | ✅ | No-op debug — no swap present on FriendlyElec image |
 | `sysctl_sdcard` | ✅ | ✅ | Unchanged — eMMC uses same tuning |
-
-**New role required:** `board_detect` (first role in both plays)
 
 ---
 
 ## See Also
 
 - `.context/domains/raspberry-pi-hardware.md` — Pi 4B equivalent hardware reference
-- `.context/cache/nanopc-t4-rk3399-k3s-ansible-2026-04-16.md` — full research with code examples
+- `.context/cache/friendlyelec-debian13-nanopc-t4-2026-04-30.md` — full FriendlyElec research with verified hardware facts
+- `.context/cache/nanopc-t4-rk3399-k3s-ansible-2026-04-16.md` — earlier research (Armbian-era, for historical reference)
