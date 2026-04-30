@@ -31,6 +31,12 @@
   when: board_platform == 'nanopc-t4'
 
 # --- Both boards (iptables) ---
+- name: Install iptables package
+  ansible.builtin.apt:
+    name: iptables
+    state: present
+    update_cache: false
+
 - name: Flush iptables before changing to iptables-legacy
   ansible.builtin.iptables:
     flush: true
