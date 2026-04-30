@@ -1,2 +1,2 @@
 ---
-longhorn_prereqs_data_dir: /mnt/ssd/longhorn
+longhorn_prereqs_data_dir: "{{ '/data/longhorn' if board_platform == 'nanopc-t4' else '/mnt/ssd/longhorn' }}"

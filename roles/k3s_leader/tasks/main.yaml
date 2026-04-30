@@ -6,7 +6,7 @@
     mode: "0700"
     owner: root
     group: root
-  when: (ansible_mounts | selectattr('mount', 'equalto', '/mnt/ssd') | list | length) > 0
+  when: board_platform == 'nanopc-t4' or (ansible_mounts | selectattr('mount', 'equalto', '/mnt/ssd') | list | length) > 0
 
 - name: Ensure k3s systemd drop-in directory exists
   ansible.builtin.file:
@@ -27,6 +27,7 @@
     owner: root
     group: root
   notify: Reload systemd
+  when: board_platform == 'pi4'
 
 - name: Ensure k3s config directory exists
   ansible.builtin.file:

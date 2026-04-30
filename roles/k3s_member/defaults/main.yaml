@@ -1,5 +1,5 @@
 ---
-k3s_member_data_dir: /mnt/ssd/k3s
+k3s_member_data_dir: "{{ '/data/k3s' if board_platform == 'nanopc-t4' else '/mnt/ssd/k3s' }}"
 k3s_member_registry_hostname: kate0.local
 k3s_member_registry_nodeport: 30500
 k3s_member_registry_username: registry
