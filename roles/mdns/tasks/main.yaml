@@ -1,0 +1,15 @@
+- name: Detect OS
+  become: true
+  ansible.builtin.slurp:
+    src: /etc/os-release
+  register: mdns_os_version
+
+- name: Write mDNS startup systemd
+  ansible.builtin.copy:
+    src: 60-enable-mdns.conf
+    dest: /etc/systemd/resolved.conf.d/60-enable-mdns.conf
+    owner: pi
+    mode: "0644"
+  when:
+    - board_platform == 'nanopc-t4'
+    - mdns_os_version == 'trixie'

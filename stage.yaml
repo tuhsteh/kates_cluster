@@ -6,6 +6,8 @@
       tags: [linux]
     - role: bashrc
       tags: [linux]
+    - role: mdns
+      tags: [linux]
     - role: swapoff
       tags: [linux]
     - role: date
@@ -58,6 +60,8 @@
     - role: board_detect
       tags: [linux]
     - role: bashrc
+      tags: [linux]
+    - role: mdns
       tags: [linux]
     - role: swapoff
       tags: [linux]
