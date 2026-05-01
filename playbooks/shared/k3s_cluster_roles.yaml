@@ -1,0 +1,29 @@
+# Shared K3s workload roles for stage leader and stage members
+
+- name: Configure stage leader (K3s workload roles)
+  hosts: stage_leader
+  become: true
+  roles:
+    - role: longhorn_prereqs
+      tags: [storage]
+    - role: k3s_leader
+      tags: [k3s]
+    - role: docker_registry
+      tags: [registry]
+    - role: longhorn
+      tags: [storage]
+    - role: prometheus
+      tags: [monitoring]
+    - role: selenium_media
+      tags: [selenium]
+    - role: selenium_grid
+      tags: [selenium]
+
+- name: Configure stage members (K3s workload roles)
+  hosts: stage_members
+  become: true
+  roles:
+    - role: longhorn_prereqs
+      tags: [storage]
+    - role: k3s_member
+      tags: [k3s]

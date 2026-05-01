@@ -74,11 +74,11 @@ ansible-galaxy collection install -r collections/requirements.yml
 # Validate playbooks
 ansible-lint
 
-# Dry run (no changes)
-ansible-playbook stage.yaml -i hosts.inv --check
+# Dry run (no changes) per workload
+ansible-playbook minimal.yaml -i hosts.inv --check
 
-# Apply linux baseline to all nodes
-ansible-playbook stage.yaml -t linux
+# Apply minimal linux baseline to all nodes
+ansible-playbook minimal.yaml -i hosts.inv
 ```
 
 ---
