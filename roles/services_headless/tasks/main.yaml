@@ -15,3 +15,38 @@
     name: hciuart.service
     masked: true
   failed_when: false
+
+- name: Set default systemd target to multi-user.target
+  ansible.builtin.command: systemctl set-default multi-user.target
+  register: services_headless_set_default_result
+  changed_when: '"Created symlink" in services_headless_set_default_result.stdout'
+
+- name: Mask gdm service
+  ansible.builtin.systemd:
+    name: gdm.service
+    masked: true
+  failed_when: false
+
+- name: Mask gdm3 service
+  ansible.builtin.systemd:
+    name: gdm3.service
+    masked: true
+  failed_when: false
+
+- name: Mask weston service
+  ansible.builtin.systemd:
+    name: weston.service
+    masked: true
+  failed_when: false
+
+- name: Mask colord service
+  ansible.builtin.systemd:
+    name: colord.service
+    masked: true
+  failed_when: false
+
+- name: Mask accounts-daemon service
+  ansible.builtin.systemd:
+    name: accounts-daemon.service
+    masked: true
+  failed_when: false
