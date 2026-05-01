@@ -1,0 +1,6 @@
+---
+- name: Reload And Restart Exo
+  ansible.builtin.systemd:
+    name: exo
+    state: restarted
+    daemon_reload: true

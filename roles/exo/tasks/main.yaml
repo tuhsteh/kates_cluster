@@ -1,0 +1,135 @@
+---
+- name: Create exo system user
+  ansible.builtin.user:
+    name: "{{ exo_user }}"
+    system: true
+    home: "/home/{{ exo_user }}"
+    shell: /bin/bash
+    create_home: true
+
+- name: Install exo apt dependencies
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-venv
+      - python3-dev
+      - build-essential
+      - git
+      - curl
+      - cmake
+      - ninja-build
+    state: present
+    update_cache: false
+
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download NodeSource GPG key
+  ansible.builtin.get_url:
+    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+    dest: /etc/apt/keyrings/nodesource.asc
+    owner: root
+    group: root
+    mode: "0644"
+    force: false
+
+- name: Add NodeSource apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.asc] https://deb.nodesource.com/node_20.x nodistro main"
+    state: present
+    filename: nodesource
+    update_cache: true
+
+- name: Install Node.js 20
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: false
+
+- name: Download uv install script
+  ansible.builtin.get_url:
+    url: https://astral.sh/uv/install.sh
+    dest: /tmp/uv-install.sh
+    mode: "0755"
+    force: false
+
+- name: Install uv for exo user
+  ansible.builtin.command:
+    cmd: /tmp/uv-install.sh
+    creates: "/home/{{ exo_user }}/.local/bin/uv"
+  become: true
+  become_user: "{{ exo_user }}"
+  environment:
+    HOME: "/home/{{ exo_user }}"
+
+- name: Download rustup-init for ARM64
+  ansible.builtin.get_url:
+    url: https://static.rust-lang.org/rustup/dist/aarch64-unknown-linux-gnu/rustup-init
+    dest: /tmp/rustup-init
+    mode: "0755"
+    force: false
+
+- name: Install Rust nightly via rustup
+  ansible.builtin.command:
+    cmd: /tmp/rustup-init -y --default-toolchain nightly
+    creates: "/home/{{ exo_user }}/.cargo/bin/rustc"
+  become: true
+  become_user: "{{ exo_user }}"
+  environment:
+    HOME: "/home/{{ exo_user }}"
+
+- name: Clone exo repository
+  ansible.builtin.git:
+    repo: https://github.com/exo-explore/exo
+    dest: "{{ exo_repo_dest }}"
+    version: main
+    update: false
+
+- name: Set exo repository ownership
+  ansible.builtin.file:
+    path: "{{ exo_repo_dest }}"
+    state: directory
+    owner: "{{ exo_user }}"
+    group: "{{ exo_user }}"
+    recurse: true
+
+- name: Build exo dashboard
+  ansible.builtin.shell:
+    cmd: npm install && npm run build
+    chdir: "{{ exo_repo_dest }}/dashboard"
+    creates: "{{ exo_repo_dest }}/dashboard/dist"
+    executable: /bin/bash
+  become: true
+  become_user: "{{ exo_user }}"
+  environment:
+    HOME: "/home/{{ exo_user }}"
+    PATH: "/home/{{ exo_user }}/.local/bin:/home/{{ exo_user }}/.cargo/bin:/usr/local/bin:/usr/bin:/bin"
+
+- name: Create exo models directory
+  ansible.builtin.file:
+    path: "{{ exo_models_dir }}"
+    state: directory
+    owner: "{{ exo_user }}"
+    group: "{{ exo_user }}"
+    mode: "0755"
+
+- name: Deploy exo systemd service
+  ansible.builtin.template:
+    src: exo.service.j2
+    dest: /etc/systemd/system/exo.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload And Restart Exo
+
+- name: Enable and start exo service
+  ansible.builtin.systemd:
+    name: exo
+    state: started
+    enabled: true
+    daemon_reload: true

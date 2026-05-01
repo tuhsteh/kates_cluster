@@ -1,0 +1,7 @@
+---
+exo_repo_dest: /opt/exo
+exo_models_dir: /data/exo/models
+exo_api_port: 52415
+exo_libp2p_port: 9000
+exo_libp2p_namespace: kates_cluster
+exo_user: exo

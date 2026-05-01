@@ -4,9 +4,9 @@
 ## Hardware
 
 - 8 × FriendlyElec NanoPC-T4 (RK3399, 4 GB RAM, 16 GB eMMC)
-- 8 × NVMe SSD (root filesystem, one per board)
-- 8 × microSD cards (eflasher only — not used after provisioning)
-- Network switch + CAT6 cables
+- 8 × NVMe SSD (root filesystem, one per board, ~250GB each)
+- 1 x microSD card (eflasher only — not used after provisioning)
+- Network switch(es) + CAT6 cables
 
 Nodes are named `kate0`–`kate7`. `kate0` is the k3s leader; `kate1`–`kate7` are members.
 All nodes are reachable via mDNS at `<name>.local` and by static IP (see `hosts.inv`).
@@ -19,7 +19,7 @@ device as the root filesystem target during the flash wizard.
 
 ## Flashing a board
 
-1. Write the FriendlyElec eflasher image to a microSD card (balenaEtcher or `dd`).
+1. Write the FriendlyElec multi-os eflasher image (I used: [rk3399-eflasher-multiple-os-20260423-30g.img.gz](https://drive.google.com/drive/folders/18SXJZvrQA47-ygmqavXH3f2zQQX6kRDj)) to a microSD card (balenaEtcher or `dd`).
 2. The SD card contains `eflasher.conf` at the root and an OS image directory, e.g.:
 
    ```
@@ -39,16 +39,29 @@ device as the root filesystem target during the flash wizard.
    ```
 
 3. Insert the SD card, power on — the eflasher UI launches automatically.
+4. Use a [RealVNC client](https://www.realvnc.com/en/connect/download/viewer/) to connect to unsecured VNC at static address 192.168.1.231.  (see ip address note below). 
 4. In the UI, **select the NVMe device as the root filesystem target** (boot must stay on eMMC).
 5. Flash and reboot. Remove the SD card; the board boots from eMMC into the NVMe root.
 
-Default credentials after flash: user `pi`, password set during first boot or per FriendlyElec defaults.
+Default credentials after flash: user `pi`, password set during first boot or per FriendlyElec defaults (sometimes `pi` also).
+
+---
+
+IP Address Note:  when the eflasher starts, the default is to show up on the local network with a static ip address.  You must have your remote machine in the same subnet.  You can easily add a secondary or alias IP address to e.g. your macbook to reach the node by VNC.
+
+```bash
+#  en0 is your network interface, discoverable by e.g. `ifconfig | grep inet`
+#  use any desired available IP
+sudo ifconfig en0 alias 192.168.1.99 255.255.255.0
+#  to remove the alias, use:
+sudo ifconfig en0 -alias 192.168.1.99.
+```
 
 ---
 
 ## Software
 
-- **OS:** Debian 13 Trixie (FriendlyElec official image, kernel 6.6, ARM64)
+- **OS:** Debian 13 Trixie with GNOME(Wayland) (FriendlyElec official image, kernel 6.6, ARM64)
 - **Ansible** (macOS control node — install via [Homebrew](https://brew.sh))
 - **ansible-lint** (for validating playbooks before running)
 
@@ -77,4 +90,8 @@ ansible-playbook stage.yaml -t linux
 - Grafana + Prometheus
 - GitHub Actions for external CI; Tekton or Argo Workflows if in-cluster pipelines are needed
 - Grafana Loki + Promtail (centralized logging)
+
+### Higher Uses
+
 - Selenium Grid (KEDA job-based autoscaling, Chromium on ARM64, local registry)
+- Locally-hosted OpenAI API compliant LLM for Coding, etc.
