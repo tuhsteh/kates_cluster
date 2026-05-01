@@ -1,32 +1,18 @@
 ---
-# Workload Profiles (choose one; always includes 'linux' base setup)
-#
-# AI Profile (low resource):
-#   ansible-playbook stage.yaml -t ai
-#   Installs: exo (distributed inference), open_webui (frontend), Docker
-#   Resources: Modest memory and CPU, no cluster overhead
-#   Good for: Lightweight inference on resource-constrained nodes
-#
-# Cluster Profile (high resource):
-#   ansible-playbook stage.yaml -t k3s,storage,registry,monitoring,selenium
-#   Installs: K3s, Longhorn storage, Docker registry, Prometheus, Selenium
-#   Resources: Heavy memory and CPU (plan for 2GB+ per node)
-#   Good for: Full cluster with orchestration and testing infrastructure
-#
-# Minimal Profile (baseline only):
-#   ansible-playbook stage.yaml -t linux
-#   Installs: System hardening, SSH keys, hostname, network config
-#   Resources: Minimal
-#   Good for: Fresh node setup before choosing AI or Cluster workload
+# K3s Cluster Environment
+# Full Kubernetes cluster with storage, registry, monitoring, and Selenium infrastructure
+# Usage: ansible-playbook k3s-cluster.yaml -i hosts.inv
+# Resources: High (plan for 2GB+ per node)
 
-- name: Configure stage leader
+- name: Configure stage leader for K3s cluster
   hosts: stage_leader
   become: true
   roles:
+    # Base system setup (always included)
     - role: board_detect
       tags: [always,linux]
     - role: sudoers
-      tags: [linux,sudoers]
+      tags: [linux]
     - role: ssh_hostkeys
       tags: [linux,ssh]
     - role: set_hostname
@@ -34,76 +20,7 @@
     - role: bashrc
       tags: [linux]
     - role: mdns
-      tags: [linux,mdns]
-    - role: swapoff
       tags: [linux]
-    - role: date
-      tags: [linux]
-    - role: mem_count
-      tags: [linux,mem]      
-    - role: print_boot_cmdline_txt
-      tags: [linux]
-    - role: cgroup
-      tags: [linux]
-    - role: fstab
-      tags: [linux]
-    - role: sysctl_sdcard
-      tags: [linux]
-    - role: sysctl_k3s
-      tags: [linux]
-    - role: kernel_modules
-      tags: [linux]
-    - role: log_ramdisk
-      tags: [linux]
-    - role: network_tmpfs
-      tags: [linux]
-    - role: apt_hardening
-      tags: [linux]
-    - role: services_headless
-      tags: [linux]
-    - role: fake_hwclock
-      tags: [linux]
-    - role: boot_opts
-      tags: [linux]
-    - role: apt_get
-      tags: [linux]
-    - role: iperf3
-      tags: [tools]
-    - role: exo
-      tags: [ai]
-    - role: open_webui
-      tags: [ai]
-    - role: longhorn_prereqs
-      tags: [storage]
-    - role: k3s_leader
-      tags: [k3s]
-    - role: docker_registry
-      tags: [registry]
-    - role: longhorn
-      tags: [storage]
-    - role: prometheus
-      tags: [monitoring]
-    - role: selenium_media
-      tags: [selenium]
-    - role: selenium_grid
-      tags: [selenium]
-
-- name: Configure stage members
-  hosts: stage_members
-  become: true
-  roles:
-    - role: board_detect
-      tags: [always,linux]
-    - role: sudoers
-      tags: [linux,sudoers]
-    - role: ssh_hostkeys
-      tags: [linux,ssh]
-    - role: set_hostname
-      tags: [linux]
-    - role: bashrc
-      tags: [linux]
-    - role: mdns
-      tags: [linux,mdns]
     - role: swapoff
       tags: [linux]
     - role: date
@@ -125,7 +42,7 @@
     - role: log_ramdisk
       tags: [linux]
     - role: network_tmpfs
-      tags: [linux]
+      tags: [linux,tmpfs]
     - role: apt_hardening
       tags: [linux]
     - role: services_headless
@@ -136,10 +53,78 @@
       tags: [linux]
     - role: apt_get
       tags: [linux]
+    # Tools
     - role: iperf3
       tags: [tools]
-    - role: exo
-      tags: [ai]
+    # K3s cluster infrastructure
+    - role: longhorn_prereqs
+      tags: [storage]
+    - role: k3s_leader
+      tags: [k3s]
+    - role: docker_registry
+      tags: [registry]
+    - role: longhorn
+      tags: [storage]
+    - role: prometheus
+      tags: [monitoring]
+    - role: selenium_media
+      tags: [selenium]
+    - role: selenium_grid
+      tags: [selenium]
+
+- name: Configure stage members for K3s cluster
+  hosts: stage_members
+  become: true
+  roles:
+    # Base system setup (always included)
+    - role: board_detect
+      tags: [always,linux]
+    - role: sudoers
+      tags: [linux]
+    - role: ssh_hostkeys
+      tags: [linux,ssh]
+    - role: set_hostname
+      tags: [linux]
+    - role: bashrc
+      tags: [linux]
+    - role: mdns
+      tags: [linux]
+    - role: swapoff
+      tags: [linux]
+    - role: date
+      tags: [linux]
+    - role: mem_count
+      tags: [linux,mem]
+    - role: print_boot_cmdline_txt
+      tags: [linux]
+    - role: cgroup
+      tags: [linux]
+    - role: fstab
+      tags: [linux]
+    - role: sysctl_sdcard
+      tags: [linux]
+    - role: sysctl_k3s
+      tags: [linux]
+    - role: kernel_modules
+      tags: [linux]
+    - role: log_ramdisk
+      tags: [linux]
+    - role: network_tmpfs
+      tags: [linux,tmpfs]
+    - role: apt_hardening
+      tags: [linux]
+    - role: services_headless
+      tags: [linux]
+    - role: fake_hwclock
+      tags: [linux]
+    - role: boot_opts
+      tags: [linux]
+    - role: apt_get
+      tags: [linux]
+    # Tools
+    - role: iperf3
+      tags: [tools]
+    # K3s cluster infrastructure
     - role: longhorn_prereqs
       tags: [storage]
     - role: k3s_member
