@@ -10,11 +10,11 @@
   roles:
     # Base system setup (always included)
     - role: board_detect
-      tags: [always,linux]
+      tags: [always, linux]
     - role: sudoers
       tags: [linux]
     - role: ssh_hostkeys
-      tags: [linux,ssh]
+      tags: [linux, ssh]
     - role: set_hostname
       tags: [linux]
     - role: bashrc
@@ -26,7 +26,7 @@
     - role: date
       tags: [linux]
     - role: mem_count
-      tags: [linux,mem]
+      tags: [linux, mem]
     - role: print_boot_cmdline_txt
       tags: [linux]
     - role: cgroup
@@ -42,7 +42,7 @@
     - role: log_ramdisk
       tags: [linux]
     - role: network_tmpfs
-      tags: [linux,tmpfs]
+      tags: [linux, tmpfs]
     - role: apt_hardening
       tags: [linux]
     - role: services_headless
@@ -78,11 +78,11 @@
   roles:
     # Base system setup (always included)
     - role: board_detect
-      tags: [always,linux]
+      tags: [always, linux]
     - role: sudoers
       tags: [linux]
     - role: ssh_hostkeys
-      tags: [linux,ssh]
+      tags: [linux, ssh]
     - role: set_hostname
       tags: [linux]
     - role: bashrc
@@ -94,7 +94,7 @@
     - role: date
       tags: [linux]
     - role: mem_count
-      tags: [linux,mem]
+      tags: [linux, mem]
     - role: print_boot_cmdline_txt
       tags: [linux]
     - role: cgroup
@@ -110,7 +110,7 @@
     - role: log_ramdisk
       tags: [linux]
     - role: network_tmpfs
-      tags: [linux,tmpfs]
+      tags: [linux, tmpfs]
     - role: apt_hardening
       tags: [linux]
     - role: services_headless

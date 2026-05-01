@@ -10,23 +10,23 @@
   become: true
   roles:
     - role: board_detect
-      tags: [always,linux]
+      tags: [always, linux]
     - role: sudoers
-      tags: [linux,sudoers]
+      tags: [linux, sudoers]
     - role: ssh_hostkeys
-      tags: [linux,ssh]
+      tags: [linux, ssh]
     - role: set_hostname
       tags: [linux]
     - role: bashrc
       tags: [linux]
     - role: mdns
-      tags: [linux,mdns]
+      tags: [linux, mdns]
     - role: swapoff
       tags: [linux]
     - role: date
       tags: [linux]
     - role: mem_count
-      tags: [linux,mem]
+      tags: [linux, mem]
     - role: print_boot_cmdline_txt
       tags: [linux]
     - role: cgroup
@@ -36,13 +36,13 @@
     - role: sysctl_sdcard
       tags: [linux]
     - role: log_ramdisk
-      tags: [linux,tmpfs]
+      tags: [linux, tmpfs]
     - role: network_tmpfs
-      tags: [linux,tmpfs]
+      tags: [linux, tmpfs]
     - role: apt_hardening
       tags: [linux]
     - role: services_headless
-      tags: [linux,headless]
+      tags: [linux, headless]
     - role: fake_hwclock
       tags: [linux]
     - role: boot_opts
@@ -55,23 +55,23 @@
   become: true
   roles:
     - role: board_detect
-      tags: [always,linux]
+      tags: [always, linux]
     - role: sudoers
-      tags: [linux,sudoers]
+      tags: [linux, sudoers]
     - role: ssh_hostkeys
-      tags: [linux,ssh]
+      tags: [linux, ssh]
     - role: set_hostname
       tags: [linux]
     - role: bashrc
       tags: [linux]
     - role: mdns
-      tags: [linux,mdns]
+      tags: [linux, mdns]
     - role: swapoff
       tags: [linux]
     - role: date
       tags: [linux]
     - role: mem_count
-      tags: [linux,mem]
+      tags: [linux, mem]
     - role: print_boot_cmdline_txt
       tags: [linux]
     - role: fstab
@@ -79,13 +79,13 @@
     - role: sysctl_sdcard
       tags: [linux]
     - role: log_ramdisk
-      tags: [linux,tmpfs]
+      tags: [linux, tmpfs]
     - role: network_tmpfs
-      tags: [linux,tmpfs]
+      tags: [linux, tmpfs]
     - role: apt_hardening
       tags: [linux]
     - role: services_headless
-      tags: [linux,headless]
+      tags: [linux, headless]
     - role: fake_hwclock
       tags: [linux]
     - role: boot_opts
