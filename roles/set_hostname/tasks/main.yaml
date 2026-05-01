@@ -5,9 +5,9 @@
 
 - name: Check hostname
   ansible.builtin.command: hostname
-  register: hostname_result
+  register: set_hostname_result
+  changed_when: false
 
 - name: Debug hostname
   ansible.builtin.debug:
-    var: hostname_result.stdout
-    
+    var: set_hostname_result.stdout
