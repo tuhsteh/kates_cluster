@@ -2,7 +2,7 @@
 
 **Boards:** FriendlyELEC NanoPC T-4  
 **SoC:** Rockchip RK3399 — 2× Cortex-A72 @ 2.0 GHz + 4× Cortex-A53 @ 1.5 GHz, AArch64  
-**OS Scope:** FriendlyElec official Debian 13 Core (kernel 4.19.232, FriendlyElec BSP fork `nanopi4-v4.19.y`)  
+**OS Scope:** FriendlyElec official Debian 13 Core (kernel 6.6.134, FriendlyElec BSP fork `nanopi4-v4.19.y`)  
 **Reference:** `.context/cache/friendlyelec-debian13-nanopc-t4-2026-04-30.md` for full research detail
 
 ---
@@ -11,7 +11,7 @@
 
 **Use FriendlyElec official Debian 13 Core.**  
 - OS: FriendlyElec official Debian 13 Core (Debian Trixie base)  
-- Kernel: 4.19.232 (FriendlyElec BSP fork, `nanopi4-v4.19.y`)  
+- Kernel: 6.6.134 (FriendlyElec BSP fork, `nanopi4-v4.19.y`)  
 - U-Boot: Rockchip vendor fork 2017.09  
 - Image filename pattern: `rk3399-XYZ-debian-trixie-core-4.19-arm64-YYYYMMDD.img.gz`  
 - Default credentials: user `pi` / password `pi`; root password `fa`  
