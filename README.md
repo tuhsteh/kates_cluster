@@ -1,6 +1,22 @@
 
 # K8s Cluster
 
+## Table Of Contents
+
+- [Hardware](#hardware)
+- [Flashing a board](#flashing-a-board)
+- [Software](#software)
+- [Goals](#goals)
+
+## Context Docs
+
+- [.context/domains/ansible-playbook.md](.context/domains/ansible-playbook.md)
+- [.context/domains/nanopc-t4-hardware.md](.context/domains/nanopc-t4-hardware.md)
+- [.context/domains/raspberry-pi-hardware.md](.context/domains/raspberry-pi-hardware.md)
+- [.context/domains/rpi5-vs-nanopc-t4-llm.md](.context/domains/rpi5-vs-nanopc-t4-llm.md)
+- [.context/standards/ansible-gotchas.md](.context/standards/ansible-gotchas.md)
+- [.context/standards/ai-tooling-strategy.md](.context/standards/ai-tooling-strategy.md)
+
 ## Hardware
 
 - 8 × FriendlyElec NanoPC-T4 (RK3399, 4 GB RAM, 16 GB eMMC)
