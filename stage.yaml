@@ -48,6 +48,10 @@
       tags: [linux]
     - role: iperf3
       tags: [tools]
+    - role: exo
+      tags: [ai]
+    - role: open_webui
+      tags: [ai]
     - role: longhorn_prereqs
       tags: [storage]
     - role: k3s_leader
@@ -113,6 +117,8 @@
       tags: [linux]
     - role: iperf3
       tags: [tools]
+    - role: exo
+      tags: [ai]
     - role: longhorn_prereqs
       tags: [storage]
     - role: k3s_member

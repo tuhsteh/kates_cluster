@@ -1,0 +1,58 @@
+---
+- name: Install docker.io
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    update_cache: false
+
+- name: Enable and start Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Pull open-webui Docker image
+  ansible.builtin.command:
+    argv:
+      - docker
+      - pull
+      - ghcr.io/open-webui/open-webui:main
+  register: open_webui_pull
+  changed_when: '"Status: Downloaded newer image" in open_webui_pull.stdout'
+
+- name: Check if open-webui container exists
+  ansible.builtin.command:
+    argv:
+      - docker
+      - inspect
+      - open-webui
+  register: open_webui_inspect
+  changed_when: false
+  failed_when: false
+
+- name: Run open-webui container
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - -d
+      - --name
+      - open-webui
+      - --restart
+      - always
+      - -p
+      - 3000:8080
+      - -v
+      - open-webui:/app/backend/data
+      - -e
+      - "OPENAI_API_BASE_URL={{ open_webui_exo_api_url }}"
+      - -e
+      - OPENAI_API_KEY=exo
+      - -e
+      - OLLAMA_BASE_URL=
+      - --add-host
+      - host.docker.internal:host-gateway
+      - ghcr.io/open-webui/open-webui:main
+  when: open_webui_inspect.rc != 0
+  register: open_webui_run
+  changed_when: true

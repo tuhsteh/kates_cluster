@@ -1,0 +1,25 @@
+[Unit]
+Description=exo distributed LLM node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ exo_user }}
+Group={{ exo_user }}
+WorkingDirectory={{ exo_repo_dest }}
+Environment="HOME=/home/{{ exo_user }}"
+Environment="PATH=/home/{{ exo_user }}/.local/bin:/home/{{ exo_user }}/.cargo/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="EXO_LIBP2P_NAMESPACE={{ exo_libp2p_namespace }}"
+Environment="EXO_DEFAULT_MODELS_DIR={{ exo_models_dir }}"
+ExecStart=/home/{{ exo_user }}/.local/bin/uv run --extra cpu exo \
+    --api-port {{ exo_api_port }} \
+    --libp2p-port {{ exo_libp2p_port }} \
+    -v
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
