@@ -1,0 +1,8 @@
+- name: Deploy sysctl k3s networking config
+  ansible.builtin.copy:
+    src: 99-k3s.conf
+    dest: /etc/sysctl.d/99-k3s.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Apply sysctl

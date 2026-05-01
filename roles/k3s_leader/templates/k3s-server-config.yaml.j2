@@ -30,6 +30,7 @@ data-dir: "{{ k3s_leader_data_dir }}"
 # WARNING: root-dir moves emptyDir volumes and pod sandbox storage to SSD.
 # Some CNI plugins hardcode /var/lib/kubelet — test CNI compatibility before relying on this.
 kubelet-arg:
+  - "cgroup-driver=systemd"
   - "container-log-max-size=10Mi"
   - "container-log-max-files=3"
   - "root-dir={{ k3s_leader_data_dir }}/agent/kubelet"

@@ -50,3 +50,75 @@
     name: accounts-daemon.service
     masked: true
   failed_when: false
+
+- name: Mask power-profiles-daemon service
+  ansible.builtin.systemd:
+    name: power-profiles-daemon.service
+    masked: true
+  failed_when: false
+
+- name: Mask fprintd service
+  ansible.builtin.systemd:
+    name: fprintd.service
+    masked: true
+  failed_when: false
+
+- name: Mask geoclue service
+  ansible.builtin.systemd:
+    name: geoclue.service
+    masked: true
+  failed_when: false
+
+- name: Mask gnome-remote-desktop service
+  ansible.builtin.systemd:
+    name: gnome-remote-desktop.service
+    masked: true
+  failed_when: false
+
+- name: Mask packagekit service
+  ansible.builtin.systemd:
+    name: packagekit.service
+    masked: true
+  failed_when: false
+
+- name: Mask gnome-initial-setup service
+  ansible.builtin.systemd:
+    name: gnome-initial-setup.service
+    masked: true
+  failed_when: false
+
+- name: Mask upower service
+  ansible.builtin.systemd:
+    name: upower.service
+    masked: true
+  failed_when: false
+
+- name: Mask ModemManager service
+  ansible.builtin.systemd:
+    name: ModemManager.service
+    masked: true
+  failed_when: false
+
+- name: Mask cups service
+  ansible.builtin.systemd:
+    name: cups.service
+    masked: true
+  failed_when: false
+
+- name: Mask cups-browsed service
+  ansible.builtin.systemd:
+    name: cups-browsed.service
+    masked: true
+  failed_when: false
+
+- name: Mask rtkit-daemon service
+  ansible.builtin.systemd:
+    name: rtkit-daemon.service
+    masked: true
+  failed_when: false
+
+- name: Mask switcheroo-control service
+  ansible.builtin.systemd:
+    name: switcheroo-control.service
+    masked: true
+  failed_when: false
