@@ -1,0 +1,15 @@
+---
+- name: Cat temperature thermal zone 0
+  ansible.builtin.command: cat /sys/class/thermal/thermal_zone0/temp
+  register: therm_temp0
+  changed_when: false
+
+- name: Cat temperature thermal zone 1
+  ansible.builtin.command: cat /sys/class/thermal/thermal_zone1/temp
+  register: therm_temp1
+  changed_when: false
+
+- name: Print temperature
+  ansible.builtin.debug:
+    msg: "Current temperatures:  {{ therm_temp0.stdout | int / 1000 }}°C and {{ therm_temp1.stdout | int / 1000 }}°C"
+  failed_when: false

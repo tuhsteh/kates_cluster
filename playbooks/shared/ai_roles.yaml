@@ -8,6 +8,8 @@
       tags: [ai]
     - role: open_webui
       tags: [ai]
+    - role: therm
+      tags: [therm]
 
 - name: Configure stage members (AI roles)
   hosts: stage_members
@@ -15,3 +17,5 @@
   roles:
     - role: exo
       tags: [ai]
+    - role: therm
+      tags: [therm]
