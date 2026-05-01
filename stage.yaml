@@ -6,6 +6,8 @@
       tags: [linux]
     - role: sudoers
       tags: [linux]
+    - role: ssh_hostkeys
+      tags: [linux]
     - role: set_hostname
       tags: [linux]
     - role: bashrc
@@ -68,6 +70,8 @@
     - role: board_detect
       tags: [linux]
     - role: sudoers
+      tags: [linux]
+    - role: ssh_hostkeys
       tags: [linux]
     - role: set_hostname
       tags: [linux]
