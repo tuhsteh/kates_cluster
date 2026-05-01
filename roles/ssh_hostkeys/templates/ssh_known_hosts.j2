@@ -1,0 +1,13 @@
+# Managed by Ansible — do not edit manually
+# Cluster node SSH host keys (ed25519)
+#
+# Note: when the stage_leader play runs in isolation, only kate0's key is
+# present in hostvars, so the leader's known_hosts will contain only its own
+# entry. Run the full playbook (both plays sequentially) so that by the time
+# stage_members executes this template, kate0's key is already in hostvars
+# and all 8 nodes will have a complete known_hosts file.
+{% for host in groups['all'] %}
+{% if hostvars[host].ssh_hostkeys_ed25519_pub_content is defined %}
+{{ host }},{{ hostvars[host].ansible_host }} {{ hostvars[host].ssh_hostkeys_ed25519_pub_content }}
+{% endif %}
+{% endfor %}
