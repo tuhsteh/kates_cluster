@@ -26,6 +26,10 @@
       tags: [linux]
     - role: sysctl_sdcard
       tags: [linux]
+    - role: sysctl_k3s
+      tags: [linux]
+    - role: kernel_modules
+      tags: [linux]
     - role: log_ramdisk
       tags: [linux]
     - role: network_tmpfs
@@ -84,6 +88,10 @@
     - role: fstab
       tags: [linux]
     - role: sysctl_sdcard
+      tags: [linux]
+    - role: sysctl_k3s
+      tags: [linux]
+    - role: kernel_modules
       tags: [linux]
     - role: log_ramdisk
       tags: [linux]

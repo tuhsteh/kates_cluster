@@ -1,0 +1,7 @@
+- name: Deploy k3s kernel modules load config
+  ansible.builtin.copy:
+    src: k3s.conf
+    dest: /etc/modules-load.d/k3s.conf
+    owner: root
+    group: root
+    mode: '0644'

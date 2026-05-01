@@ -24,10 +24,10 @@
 - name: Cgroup flags pre-compiled in FriendlyElec kernel (NanoPC)
   ansible.builtin.debug:
     msg: >-
-      [WARNING] cgroup_enable=cpuset is ABSENT from the FriendlyElec kernel cmdline
-      (kernel 6.6.134, compiled into firmware — cannot be changed via Ansible).
-      k3s pod CPU resource limits (resources.limits.cpu) will NOT be enforced on this node.
-      Memory limits work correctly: cgroup_enable=memory and cgroup_memory=1 are present.
+      [INFO] Kernel 6.6 boots cgroup v2 (unified hierarchy) by default on this node.
+      cpuset and CPU limits are fully available via cgroup v2 — no cmdline flags required.
+      The v1 cmdline flags (cgroup_enable=*, cgroup_memory=*) are no longer relevant.
+      Verify: run 'stat -fc %T /sys/fs/cgroup/' on the node — expected output: cgroup2fs.
   when: board_platform == 'nanopc-t4'
 
 # --- Both boards (iptables) ---
