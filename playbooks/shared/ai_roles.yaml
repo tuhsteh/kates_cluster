@@ -1,0 +1,17 @@
+# Shared AI workload roles for stage leader and stage members
+
+- name: Configure stage leader (AI roles)
+  hosts: stage_leader
+  become: true
+  roles:
+    - role: exo
+      tags: [ai]
+    - role: open_webui
+      tags: [ai]
+
+- name: Configure stage members (AI roles)
+  hosts: stage_members
+  become: true
+  roles:
+    - role: exo
+      tags: [ai]

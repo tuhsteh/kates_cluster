@@ -1,0 +1,23 @@
+# Shared Selenium prerequisites for stage leader and stage members
+
+- name: Configure stage leader (Selenium prerequisites)
+  hosts: stage_leader
+  become: true
+  roles:
+    - role: longhorn_prereqs
+      tags: [storage]
+    - role: k3s_leader
+      tags: [k3s]
+    - role: docker_registry
+      tags: [registry]
+    - role: longhorn
+      tags: [storage]
+
+- name: Configure stage members (Selenium prerequisites)
+  hosts: stage_members
+  become: true
+  roles:
+    - role: longhorn_prereqs
+      tags: [storage]
+    - role: k3s_member
+      tags: [k3s]

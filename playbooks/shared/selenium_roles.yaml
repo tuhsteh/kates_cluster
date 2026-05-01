@@ -1,0 +1,19 @@
+# Shared Selenium workload roles for stage leader and stage members
+
+- name: Configure stage leader (selenium roles)
+  hosts: stage_leader
+  become: true
+  roles:
+    - role: selenium_media
+      tags: [selenium]
+    - role: selenium_grid
+      tags: [selenium]
+
+- name: Configure stage members (selenium roles)
+  hosts: stage_members
+  become: true
+  roles:
+    - role: selenium_media
+      tags: [selenium]
+    - role: selenium_grid
+      tags: [selenium]

@@ -1,25 +1,6 @@
----
-# Workload Profiles (choose one; always includes 'linux' base setup)
-#
-# AI Profile (low resource):
-#   ansible-playbook stage.yaml -t ai
-#   Installs: exo (distributed inference), open_webui (frontend), Docker
-#   Resources: Modest memory and CPU, no cluster overhead
-#   Good for: Lightweight inference on resource-constrained nodes
-#
-# Cluster Profile (high resource):
-#   ansible-playbook stage.yaml -t k3s,storage,registry,monitoring,selenium
-#   Installs: K3s, Longhorn storage, Docker registry, Prometheus, Selenium
-#   Resources: Heavy memory and CPU (plan for 2GB+ per node)
-#   Good for: Full cluster with orchestration and testing infrastructure
-#
-# Minimal Profile (baseline only):
-#   ansible-playbook stage.yaml -t linux
-#   Installs: System hardening, SSH keys, hostname, network config
-#   Resources: Minimal
-#   Good for: Fresh node setup before choosing AI or Cluster workload
+# Shared Linux baseline for stage leader and stage members
 
-- name: Configure stage leader
+- name: Configure stage leader (Linux baseline)
   hosts: stage_leader
   become: true
   roles:
@@ -54,13 +35,13 @@
     - role: kernel_modules
       tags: [linux]
     - role: log_ramdisk
-      tags: [linux]
+      tags: [linux, tmpfs]
     - role: network_tmpfs
-      tags: [linux]
+      tags: [linux, tmpfs]
     - role: apt_hardening
       tags: [linux]
     - role: services_headless
-      tags: [linux]
+      tags: [linux, headless]
     - role: fake_hwclock
       tags: [linux]
     - role: boot_opts
@@ -69,26 +50,8 @@
       tags: [linux]
     - role: iperf3
       tags: [tools]
-    - role: exo
-      tags: [ai]
-    - role: open_webui
-      tags: [ai]
-    - role: longhorn_prereqs
-      tags: [storage]
-    - role: k3s_leader
-      tags: [k3s]
-    - role: docker_registry
-      tags: [registry]
-    - role: longhorn
-      tags: [storage]
-    - role: prometheus
-      tags: [monitoring]
-    - role: selenium_media
-      tags: [selenium]
-    - role: selenium_grid
-      tags: [selenium]
 
-- name: Configure stage members
+- name: Configure stage members (Linux baseline)
   hosts: stage_members
   become: true
   roles:
@@ -123,13 +86,13 @@
     - role: kernel_modules
       tags: [linux]
     - role: log_ramdisk
-      tags: [linux]
+      tags: [linux, tmpfs]
     - role: network_tmpfs
-      tags: [linux]
+      tags: [linux, tmpfs]
     - role: apt_hardening
       tags: [linux]
     - role: services_headless
-      tags: [linux]
+      tags: [linux, headless]
     - role: fake_hwclock
       tags: [linux]
     - role: boot_opts
@@ -138,9 +101,3 @@
       tags: [linux]
     - role: iperf3
       tags: [tools]
-    - role: exo
-      tags: [ai]
-    - role: longhorn_prereqs
-      tags: [storage]
-    - role: k3s_member
-      tags: [k3s]
