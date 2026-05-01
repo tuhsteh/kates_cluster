@@ -51,16 +51,16 @@ for server in "${HOSTS[@]}"; do
     # failure lets the outer if catch unreachable nodes.
     if json=$(ssh "${SSH_OPTS[@]}" "$client" iperf3 -c "$server_ip" -t 3 -J) \
         && [[ -n "$json" ]]; then
-      gbps=$(printf '%s\n' "$json" | python3 -c '
+      mbps=$(printf '%s\n' "$json" | python3 -c '
 import sys, json
 try:
     d = json.load(sys.stdin)
     bps = d["end"]["sum_received"]["bits_per_second"]
-    print(f"{bps/1e9:.2f}")
+    print(f"{bps/1e6:.2f}")
 except Exception:
     print("—")
 ')
-      RESULT["$client,$server"]="${gbps}"
+      RESULT["$client,$server"]="${mbps}"
     else
       RESULT["$client,$server"]="—"
     fi
