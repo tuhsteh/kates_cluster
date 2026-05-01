@@ -6,6 +6,8 @@
   roles:
     - role: board_detect
       tags: [always, linux]
+    - role: therm
+      tags: [linux, therm]
     - role: sudoers
       tags: [linux, sudoers]
     - role: ssh_hostkeys
@@ -44,6 +46,8 @@
       tags: [linux]
     - role: apt_get
       tags: [linux]
+    - role: therm
+      tags: [linux, therm]
 
 - name: Configure stage members (minimal baseline)
   hosts: stage_members
@@ -51,6 +55,8 @@
   roles:
     - role: board_detect
       tags: [always, linux]
+    - role: therm
+      tags: [linux, therm]
     - role: sudoers
       tags: [linux, sudoers]
     - role: ssh_hostkeys
@@ -87,3 +93,5 @@
       tags: [linux]
     - role: apt_get
       tags: [linux]
+    - role: therm
+      tags: [linux, therm]
