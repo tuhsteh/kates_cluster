@@ -44,8 +44,8 @@
       tags: [linux]
     - role: apt_get
       tags: [linux]
-    - role: ssd_mount
-      tags: [linux]
+    - role: iperf3
+      tags: [tools]
     - role: longhorn_prereqs
       tags: [storage]
     - role: k3s_leader
@@ -107,8 +107,8 @@
       tags: [linux]
     - role: apt_get
       tags: [linux]
-    - role: ssd_mount
-      tags: [linux]
+    - role: iperf3
+      tags: [tools]
     - role: longhorn_prereqs
       tags: [storage]
     - role: k3s_member

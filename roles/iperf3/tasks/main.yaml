@@ -1,0 +1,6 @@
+---
+- name: Install iperf3
+  ansible.builtin.apt:
+    name: iperf3
+    state: present
+    update_cache: false
