@@ -6,6 +6,8 @@
       tags: [linux]
     - role: sudoers
       tags: [linux]
+    - role: set_hostname
+      tags: [linux]
     - role: bashrc
       tags: [linux]
     - role: mdns
@@ -62,6 +64,8 @@
     - role: board_detect
       tags: [linux]
     - role: sudoers
+      tags: [linux]
+    - role: set_hostname
       tags: [linux]
     - role: bashrc
       tags: [linux]

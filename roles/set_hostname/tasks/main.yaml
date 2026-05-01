@@ -1,0 +1,13 @@
+---
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Check hostname
+  ansible.builtin.command: hostname
+  register: hostname_result
+
+- name: Debug hostname
+  ansible.builtin.debug:
+    var: hostname_result.stdout
+    
