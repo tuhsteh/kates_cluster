@@ -1,0 +1,233 @@
+---
+- name: Install docker.io
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    update_cache: false
+
+- name: Enable and start Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create LocalAI models directory
+  ansible.builtin.file:
+    path: "{{ localai_models_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create LocalAI model config directory
+  ansible.builtin.file:
+    path: "{{ localai_models_dir }}/configs"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create LocalAI download temp directory
+  ansible.builtin.file:
+    path: "{{ localai_download_tmp_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Measure LocalAI temp directory size before cleanup
+  ansible.builtin.command:
+    argv:
+      - du
+      - -sh
+      - "{{ localai_download_tmp_dir }}"
+  register: localai_tmp_size_before
+  changed_when: false
+  when: localai_tmp_cleanup_enabled | bool
+
+- name: Find stale LocalAI temp files
+  ansible.builtin.find:
+    paths: "{{ localai_download_tmp_dir }}"
+    recurse: true
+    file_type: file
+    age: "{{ localai_tmp_cleanup_older_than_days }}d"
+  register: localai_stale_temp_files
+  when: localai_tmp_cleanup_enabled | bool
+
+- name: Remove stale LocalAI temp files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ localai_stale_temp_files.files }}"
+  when: localai_tmp_cleanup_enabled | bool
+
+- name: Measure LocalAI temp directory size after cleanup
+  ansible.builtin.command:
+    argv:
+      - du
+      - -sh
+      - "{{ localai_download_tmp_dir }}"
+  register: localai_tmp_size_after
+  changed_when: false
+  when: localai_tmp_cleanup_enabled | bool
+
+- name: Report LocalAI temp cleanup status
+  ansible.builtin.debug:
+    msg:
+      - "LocalAI temp dir before cleanup: {{ localai_tmp_size_before.stdout | default('unavailable') }}"
+      - "LocalAI stale temp files removed: {{ localai_stale_temp_files.matched | default(0) }}"
+      - "LocalAI temp dir after cleanup: {{ localai_tmp_size_after.stdout | default('unavailable') }}"
+  when: localai_tmp_cleanup_enabled | bool
+
+- name: Schedule LocalAI temp cleanup cron
+  ansible.builtin.cron:
+    name: localai-temp-cleanup
+    user: root
+    minute: "{{ localai_tmp_cleanup_cron_minute }}"
+    hour: "{{ localai_tmp_cleanup_cron_hour }}"
+    job: >-
+      find {{ localai_download_tmp_dir }} -type f
+      -mtime +{{ localai_tmp_cleanup_older_than_days }} -delete &&
+      find {{ localai_download_tmp_dir }} -mindepth 1
+      -type d -empty -delete
+    state: present
+  when: localai_tmp_cleanup_enabled | bool
+
+- name: Download curated LocalAI GGUF models
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ localai_models_dir }}/configs/{{ item.filename }}"
+    tmp_dest: "{{ localai_download_tmp_dir }}"
+    mode: "0644"
+    timeout: 120
+  loop: "{{ localai_models }}"
+
+- name: Write LocalAI model configs
+  ansible.builtin.copy:
+    dest: "{{ localai_models_dir }}/configs/{{ item.id }}.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      name: {{ item.id }}
+      backend: llama-cpp
+      parameters:
+        model: {{ item.filename }}
+        context_size: {{ localai_context_size }}
+        threads: {{ localai_threads }}
+        temperature: 0.2
+        top_p: 0.9
+  loop: "{{ localai_models }}"
+
+- name: Build curated LocalAI filename allowlist
+  ansible.builtin.set_fact:
+    localai_curated_model_files: "{{ localai_models | map(attribute='filename') | list }}"
+
+- name: Build curated LocalAI config allowlist
+  ansible.builtin.set_fact:
+    localai_curated_config_files: "{{ localai_models | map(attribute='id') | map('regex_replace', '^(.*)$', '\\1.yaml') | list }}"
+
+- name: Combine curated LocalAI filename allowlist
+  ansible.builtin.set_fact:
+    localai_curated_filenames: "{{ localai_curated_model_files + localai_curated_config_files }}"
+
+- name: Find files in LocalAI config directory
+  ansible.builtin.find:
+    paths: "{{ localai_models_dir }}/configs"
+    recurse: true
+    file_type: file
+  register: localai_config_files
+
+- name: Remove non-curated LocalAI files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ localai_config_files.files }}"
+  when: (item.path | basename) not in localai_curated_filenames
+
+- name: Pull LocalAI Docker image
+  ansible.builtin.command:
+    argv:
+      - docker
+      - pull
+      - "{{ localai_image }}"
+  register: localai_pull
+  changed_when: '"Status: Downloaded newer image" in localai_pull.stdout'
+
+- name: Check if localai container exists
+  ansible.builtin.command:
+    argv:
+      - docker
+      - inspect
+      - localai
+  register: localai_inspect
+  changed_when: false
+  failed_when: false
+
+- name: Remove existing localai container
+  ansible.builtin.command:
+    argv:
+      - docker
+      - rm
+      - -f
+      - localai
+  when: localai_inspect.rc == 0
+  register: localai_rm
+  changed_when: localai_rm.rc == 0
+
+- name: Run localai container
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - -d
+      - --name
+      - localai
+      - --restart
+      - always
+      - -p
+      - "{{ localai_api_port }}:8080"
+      - -v
+      - "{{ localai_models_dir }}:/models"
+      - -e
+      - MODELS_PATH=/models/configs
+      - -e
+      - "MODELS={{ localai_models | map(attribute='id') | map('regex_replace', '^(.*)$', '/models/configs/\\1.yaml') | join(',') }}"
+      - -e
+      - PROFILE=cpu
+      - -e
+      - THREADS={{ localai_threads }}
+      - "{{ localai_image }}"
+  register: localai_run
+  changed_when: true
+
+- name: Create localai systemd service shim for state management
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/localai.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=LocalAI Docker Container
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=true
+      ExecStart=/usr/bin/docker start localai
+      ExecStop=/usr/bin/docker stop localai
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd for localai shim
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable localai shim service
+  ansible.builtin.systemd:
+    name: localai
+    enabled: true
+    state: started

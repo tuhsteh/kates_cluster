@@ -15,6 +15,8 @@ Environment="EXO_DEFAULT_MODELS_DIR={{ exo_models_dir }}"
 ExecStart=/home/{{ exo_user }}/.local/bin/uv run --extra cpu exo \
     --api-port {{ exo_api_port }} \
     --libp2p-port {{ exo_libp2p_port }} \
+{% if exo_force_master %}    -m \
+{% endif %}
     -v
 Restart=on-failure
 RestartSec=10

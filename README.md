@@ -10,6 +10,7 @@
 
 ## Context Docs
 
+- [AI_MODEL_ALLOWLIST.md](AI_MODEL_ALLOWLIST.md)
 - [.context/domains/ansible-playbook.md](.context/domains/ansible-playbook.md)
 - [.context/domains/nanopc-t4-hardware.md](.context/domains/nanopc-t4-hardware.md)
 - [.context/domains/raspberry-pi-hardware.md](.context/domains/raspberry-pi-hardware.md)
@@ -96,6 +97,36 @@ ansible-playbook minimal.yaml -i hosts.inv --check
 # Apply minimal linux baseline to all nodes
 ansible-playbook minimal.yaml -i hosts.inv
 ```
+
+### AI Backend Selection
+
+`exo-ai.yaml` now supports selecting the inference backend on the leader.
+
+- EXO backend (default):
+
+  ```bash
+  ansible-playbook exo-ai.yaml -i hosts.inv --tags ai -e ai_backend=exo -e exo_leader_only=true
+  ```
+
+- LocalAI backend (Plan B):
+
+  ```bash
+  ansible-playbook exo-ai.yaml -i hosts.inv --tags ai -e ai_backend=localai
+  ```
+
+Open WebUI is automatically pointed at the selected backend.
+
+### LocalAI Storage And Cleanup
+
+When `ai_backend=localai` is selected on the leader:
+
+- curated model assets live under `/data/localai/models`
+- LocalAI model config files and curated GGUF files are kept under `/data/localai/models/configs`
+- large model download temp files are staged on SSD at `/data/localai/models/tmp` instead of `/tmp`
+- stale temp files older than 3 days are removed automatically
+- the cleanup cron runs daily at `03:27`
+
+This keeps infrequent large writes off the tmpfs-backed `/tmp` while still pruning stale download artifacts from SSD-backed storage.
 
 ---
 
