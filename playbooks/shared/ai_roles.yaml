@@ -4,21 +4,21 @@
   hosts: stage_leader
   become: true
   vars:
-    ai_backend: "{{ ai_backend | default('exo') }}"
+    resolved_ai_backend: "{{ ai_backend | default('exo') }}"
     exo_api_url: "http://host.docker.internal:52415/v1"
     localai_api_url: "http://host.docker.internal:8080/v1"
   roles:
     - role: exo
-      when: ai_backend == 'exo'
+      when: resolved_ai_backend == 'exo'
       vars:
         exo_force_master: "{{ exo_leader_only | default(false) | bool }}"
       tags: [ai]
     - role: localai
-      when: ai_backend == 'localai'
+      when: resolved_ai_backend == 'localai'
       tags: [ai]
     - role: open_webui
       vars:
-        open_webui_openai_api_url: "{{ exo_api_url if ai_backend == 'exo' else localai_api_url }}"
+        open_webui_openai_api_url: "{{ exo_api_url if resolved_ai_backend == 'exo' else localai_api_url }}"
       tags: [ai]
     - role: therm
       tags: [therm]
@@ -28,7 +28,7 @@
         name: exo
         state: stopped
         enabled: false
-      when: ai_backend != 'exo'
+      when: resolved_ai_backend != 'exo'
       tags: [ai]
 
     - name: Stop and disable localai when backend is not localai
@@ -36,25 +36,25 @@
         name: localai
         state: stopped
         enabled: false
-      when: ai_backend != 'localai'
+      when: resolved_ai_backend != 'localai'
       tags: [ai]
 
 - name: Configure stage members (AI roles)
   hosts: stage_members
   become: true
   vars:
-    ai_backend: "{{ ai_backend | default('exo') }}"
+    resolved_ai_backend: "{{ ai_backend | default('exo') }}"
   tasks:
     - name: Stop and disable exo on members when leader-only mode is enabled
       ansible.builtin.systemd:
         name: exo
         state: stopped
         enabled: false
-      when: (exo_leader_only | default(false) | bool) or (ai_backend != 'exo')
+      when: (exo_leader_only | default(false) | bool) or (resolved_ai_backend != 'exo')
       tags: [ai]
   roles:
     - role: exo
-      when: (ai_backend == 'exo') and not (exo_leader_only | default(false) | bool)
+      when: (resolved_ai_backend == 'exo') and not (exo_leader_only | default(false) | bool)
       tags: [ai]
     - role: therm
       tags: [therm]
