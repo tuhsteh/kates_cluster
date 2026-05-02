@@ -87,7 +87,7 @@
   ansible.builtin.git:
     repo: https://github.com/exo-explore/exo
     dest: "{{ exo_repo_dest }}"
-    version: main
+    version: "{{ exo_repo_version }}"
     update: false
 
 - name: Set exo repository ownership
@@ -113,6 +113,14 @@
 - name: Create exo models directory
   ansible.builtin.file:
     path: "{{ exo_models_dir }}"
+    state: directory
+    owner: "{{ exo_user }}"
+    group: "{{ exo_user }}"
+    mode: "0755"
+
+- name: Create exo default home models directory
+  ansible.builtin.file:
+    path: "{{ exo_home_models_dir }}"
     state: directory
     owner: "{{ exo_user }}"
     group: "{{ exo_user }}"

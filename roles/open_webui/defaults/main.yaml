@@ -1,2 +1,2 @@
 ---
-open_webui_exo_api_url: http://host.docker.internal:52415/v1
+open_webui_openai_api_url: http://host.docker.internal:52415/v1

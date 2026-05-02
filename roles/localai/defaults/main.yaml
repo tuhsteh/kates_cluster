@@ -1,0 +1,18 @@
+---
+localai_image: localai/localai:latest-aio-cpu
+localai_api_port: 8080
+localai_models_dir: /data/localai/models
+localai_download_tmp_dir: /data/localai/models/tmp
+localai_tmp_cleanup_enabled: true
+localai_tmp_cleanup_older_than_days: 3
+localai_tmp_cleanup_cron_minute: "27"
+localai_tmp_cleanup_cron_hour: "3"
+localai_context_size: 2048
+localai_threads: 4
+localai_models:
+  - id: qwen2.5-coder-1.5b-instruct
+    filename: Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf
+    url: https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf
+  - id: qwen2.5-coder-0.5b-instruct
+    filename: Qwen2.5-Coder-0.5B-Instruct-Q4_K_M.gguf
+    url: https://huggingface.co/bartowski/Qwen2.5-Coder-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-0.5B-Instruct-Q4_K_M.gguf

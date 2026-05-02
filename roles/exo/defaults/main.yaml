@@ -1,7 +1,10 @@
 ---
 exo_repo_dest: /opt/exo
+exo_repo_version: v1.0.71
 exo_models_dir: /data/exo/models
+exo_home_models_dir: "/home/{{ exo_user }}/.local/share/exo/models"
 exo_api_port: 52415
 exo_libp2p_port: 9000
 exo_libp2p_namespace: kates_cluster
 exo_user: exo
+exo_force_master: false

@@ -30,6 +30,17 @@
   changed_when: false
   failed_when: false
 
+- name: Remove existing open-webui container
+  ansible.builtin.command:
+    argv:
+      - docker
+      - rm
+      - -f
+      - open-webui
+  when: open_webui_inspect.rc == 0
+  register: open_webui_rm
+  changed_when: open_webui_rm.rc == 0
+
 - name: Run open-webui container
   ansible.builtin.command:
     argv:
@@ -45,7 +56,7 @@
       - -v
       - open-webui:/app/backend/data
       - -e
-      - "OPENAI_API_BASE_URL={{ open_webui_exo_api_url }}"
+      - "OPENAI_API_BASE_URL={{ open_webui_openai_api_url }}"
       - -e
       - OPENAI_API_KEY=exo
       - -e
@@ -53,6 +64,5 @@
       - --add-host
       - host.docker.internal:host-gateway
       - ghcr.io/open-webui/open-webui:main
-  when: open_webui_inspect.rc != 0
   register: open_webui_run
   changed_when: true
